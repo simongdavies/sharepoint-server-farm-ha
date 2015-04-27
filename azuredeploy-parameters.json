@@ -1,0 +1,18 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"newStorageAccountName": {
+			"value": "sdspha1"
+		},
+		"dnsPrefix":{
+			"value":"sdspha1"
+		},
+		"AssetLocation" :{
+			"value":"https://raw.githubusercontent.com/simongdavies/sharepoint-server-farm-ha/master/"
+		},
+		"deploymentLocation": {
+			"value":"West Europe"
+		}
+	}
+}
