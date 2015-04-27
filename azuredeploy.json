@@ -1267,6 +1267,7 @@
                         "SqlAlwaysOnAvailabilityGroupName":"[variables('sqlAOAGName')]",
                         "SqlAlwaysOnAvailabilityGroupListenerName":"[variables('sqlAOListenerName')]",
                         "SqlAlwaysOnAvailabilityGroupListenerPort":1433,
+                        "DatabaseNames":null,
                         "LBName":"[variables('sqlLBName')]",
                         "LBAddress":"[parameters('SQLLBIPAddress')]",
                         "PrimaryReplica":"[concat(variables('sqlVMName'),'1')]",
