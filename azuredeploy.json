@@ -314,7 +314,7 @@
                 "Description": "The Sharepoint Farm Passphrase"
             }
         },
-        "databaseName":{
+        "configDatabaseName":{
             "type":"string",
             "metadata": {
                 "Description": "The Sharepoint Config Database Name"
@@ -327,6 +327,13 @@
                 "Description": "The Sharepoint Admin Site Database Name"
             },
             "defaultValue":"SP_AdminContent"
+        },
+        "contentDatabaseName":{
+            "type":"string",
+            "metadata": {
+                "Description": "The Sharepoint Content Database Name"
+            },
+            "defaultValue":"spfarm_Content",
         },
         "spSiteTemplateName":{
             "type":"string",
@@ -365,7 +372,6 @@
         "spWebAvailabilitySetName":"spWebAvailabiltySet",
         "spAppAvailabilitySetName": "spAppAvailabiltySet",
         "spCentralAdminPort":8080,
-        "spContentDatabase":"spARM_Content",
         "noOfSqlVMs":2,
         "noOfspwebVMs":2,
         "noOfspappVMs":2,
@@ -1453,14 +1459,14 @@
                             "UserName": "[parameters('sqlServerServiceAccountUserName')]",
                             "Password": "PrivateSettingsRef:SqlServerServiceAccountPassword"
                         },
-                        "DatabaseName":"[parameters('databaseName')]",
+                        "DatabaseName":"[parameters('configDatabaseName')]",
                         "SqlAlwaysOnAvailabilityGroupName":"[variables('sqlAOAGName')]",
                         "PrimaryReplica":"[concat(variables('sqlVMName'),'1')]",
                         "SecondaryReplica":"[concat(variables('sqlVMName'),'0')]",
-                        "databaseNames":[],
+                        "databaseNames":["[parameters('administrationContentDatabaseName')]","[parameters('contentDatabaseName')]","[parameters('configDatabaseName')]"],
                         "AdministrationContentDatabaseName":"[parameters('administrationContentDatabaseName')]",
                         "DatabaseServer":"[concat(variables('sqlVMName'),'1.',parameters('domainName'))]",
-                        "Configuration":"[concat('{\"roles\":[{\"type\":\"application\",\"properties\":{\"fqdn\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":',variables('spCentralAdminPort'),'}},{\"type\":\"web\",\"properties\":{\"webApp\":{\"name\":\"spARM\",\"applicationPool\":\"spARM AppPool\",\"applicationPoolAccount\":\"', parameters('sharePointFarmAccountUserName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":80,\"hostHeader\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"databaseName\":\"',variables('spContentDatabase'),'\"},\"site\":{\"name\":\"spARM\",\"template\":\"',parameters('spSiteTemplateName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"ownerAliasDomain\":\"',parameters('domainName'),'\",\"ownerAliasUserName\":\"',parameters('sharePointFarmAccountUserName'),'\",\"secondaryOwnerAliasDomain\":\"',parameters('domainName'),'\",\"secondaryOwnerAliasUserName\":\"',parameters('adminUserName'),'\"}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
+                        "Configuration":"[concat('{\"roles\":[{\"type\":\"application\",\"properties\":{\"fqdn\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":',variables('spCentralAdminPort'),'}},{\"type\":\"web\",\"properties\":{\"webApp\":{\"name\":\"spARM\",\"applicationPool\":\"spARM AppPool\",\"applicationPoolAccount\":\"', parameters('sharePointFarmAccountUserName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":80,\"hostHeader\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"databaseName\":\"',parameters('contentDatabaseName'),'\"},\"site\":{\"name\":\"spARM\",\"template\":\"',parameters('spSiteTemplateName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"ownerAliasDomain\":\"',parameters('domainName'),'\",\"ownerAliasUserName\":\"',parameters('sharePointFarmAccountUserName'),'\",\"secondaryOwnerAliasDomain\":\"',parameters('domainName'),'\",\"secondaryOwnerAliasUserName\":\"',parameters('adminUserName'),'\"}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
                     }
                 },
                 "protectedSettings": {
@@ -1508,7 +1514,7 @@
                             "UserName": "ignore",
                             "Password": "PrivateSettingsRef:SharePointFarmPassphrasePassword"
                         },
-                        "DatabaseName":"[parameters('databaseName')]",
+                        "DatabaseName":"[parameters('configDatabaseName')]",
                         "AdministrationContentDatabaseName":"[parameters('administrationContentDatabaseName')]",
                         "DatabaseServer":"[concat(variables('sqlVMName'),'1.',parameters('domainName'))]",
                         "Configuration":"[concat('{\"roles\":[{\"type\":\"application\",\"properties\":{\"fqdn\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":',variables('spCentralAdminPort'),'}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
@@ -1562,10 +1568,10 @@
                             "UserName": "ignore",
                             "Password": "PrivateSettingsRef:SharePointFarmPassphrasePassword"
                         },
-                        "DatabaseName":"[parameters('databaseName')]",
+                        "DatabaseName":"[parameters('configDatabaseName')]",
                         "AdministrationContentDatabaseName":"[parameters('administrationContentDatabaseName')]",
                         "DatabaseServer":"[concat(variables('sqlVMName'),'1.',parameters('domainName'))]",
-                        "Configuration":"[concat('{\"roles\":[{\"type\":\"web\",\"properties\":{\"webApp\":{\"name\":\"spARM\",\"applicationPool\":\"spARM AppPool\",\"applicationPoolAccount\":\"', parameters('sharePointFarmAccountUserName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":80,\"hostHeader\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"databaseName\":\"',variables('spContentDatabase'),'\"},\"site\":{\"name\":\"spARM\",\"template\":\"',parameters('spSiteTemplateName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"ownerAliasDomain\":\"',parameters('domainName'),'\",\"ownerAliasUserName\":\"',parameters('sharePointFarmAccountUserName'),'\",\"secondaryOwnerAliasDomain\":\"',parameters('domainName'),'\",\"secondaryOwnerAliasUserName\":\"',parameters('adminUserName'),'\"}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
+                        "Configuration":"[concat('{\"roles\":[{\"type\":\"web\",\"properties\":{\"webApp\":{\"name\":\"spARM\",\"applicationPool\":\"spARM AppPool\",\"applicationPoolAccount\":\"', parameters('sharePointFarmAccountUserName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":80,\"hostHeader\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"databaseName\":\"',parameters('contentDatabaseName'),'\"},\"site\":{\"name\":\"spARM\",\"template\":\"',parameters('spSiteTemplateName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"ownerAliasDomain\":\"',parameters('domainName'),'\",\"ownerAliasUserName\":\"',parameters('sharePointFarmAccountUserName'),'\",\"secondaryOwnerAliasDomain\":\"',parameters('domainName'),'\",\"secondaryOwnerAliasUserName\":\"',parameters('adminUserName'),'\"}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
                     }
                 },
                 "protectedSettings": {
