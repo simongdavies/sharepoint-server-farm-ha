@@ -1233,12 +1233,17 @@
                         "SQLServiceCreds":{
                             "UserName": "[parameters('sqlServerServiceAccountUserName')]",
                             "Password": "PrivateSettingsRef:SqlServerServiceAccountPassword"
+                        },
+                        "SharePointSetupUserAccountcreds":{
+                            "UserName": "[parameters('sharePointSetupUserAccountUserName')]",
+                            "Password": "PrivateSettingsRef:SharePointSetupUserAccountPassword"
                         }
                     }
                 },
                 "protectedSettings": {
                     "Items": {
                         "AdminPassword": "[parameters('adminPassword')]",
+                        "SharePointSetupUserAccountPassword": "[parameters('sharePointSetupUserAccountPassword')]",
                         "SqlServerServiceAccountPassword": "[parameters('sqlServerServiceAccountPassword')]"
                     }
                 }
@@ -1282,12 +1287,17 @@
                         "SQLServiceCreds":{
                             "UserName": "[parameters('sqlServerServiceAccountUserName')]",
                             "Password": "PrivateSettingsRef:SqlServerServiceAccountPassword"
+                        },
+                        "SharePointSetupUserAccountcreds":{
+                            "UserName": "[parameters('sharePointSetupUserAccountUserName')]",
+                            "Password": "PrivateSettingsRef:SharePointSetupUserAccountPassword"
                         }
                     }
                 },
                 "protectedSettings": {
                     "Items": {
                         "AdminPassword": "[parameters('adminPassword')]",
+                        "SharePointSetupUserAccountPassword": "[parameters('sharePointSetupUserAccountPassword')]",
                         "SqlServerServiceAccountPassword": "[parameters('sqlServerServiceAccountPassword')]"
                     }
                 }
@@ -1450,7 +1460,7 @@
                         "databaseNames":[],
                         "AdministrationContentDatabaseName":"[parameters('administrationContentDatabaseName')]",
                         "DatabaseServer":"[concat(variables('sqlVMName'),'1.',parameters('domainName'))]",
-                        "Configuration":"[concat('{\"roles\":[{\"type\":\"application\",\"properties\":{\"fqdn\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":',variables('spCentralAdminPort'),'}},{\"type\":\"web\",\"properties\":{\"webApp\":{\"name\":\"spARM\",\"applicationPool\":\"spARM AppPool\",\"applicationPoolAccount\":\"', parameters('sharePointFarmAccountUserName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":80,\"hostHeader\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"databaseName\":\"',variables('spContentDatabase'),'\"},\"site\":{\"name\":\"spARM\",\"template\":\"',parameters('spSiteTemplateName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"ownerAliasDomain\":\"',parameters('domainName'),'\",\"ownerAliasUserName\":\"',parameters('sharePointFarmAccountUserName'),'\",\"secondaryOwnerAliasDomain\":\"',parameters('domainName'),'\",\"secondaryOwnerAliasUserName\":\"',parameters('adminUserName'),'\"}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'\"}')]"
+                        "Configuration":"[concat('{\"roles\":[{\"type\":\"application\",\"properties\":{\"fqdn\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":',variables('spCentralAdminPort'),'}},{\"type\":\"web\",\"properties\":{\"webApp\":{\"name\":\"spARM\",\"applicationPool\":\"spARM AppPool\",\"applicationPoolAccount\":\"', parameters('sharePointFarmAccountUserName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":80,\"hostHeader\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"databaseName\":\"',variables('spContentDatabase'),'\"},\"site\":{\"name\":\"spARM\",\"template\":\"',parameters('spSiteTemplateName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"ownerAliasDomain\":\"',parameters('domainName'),'\",\"ownerAliasUserName\":\"',parameters('sharePointFarmAccountUserName'),'\",\"secondaryOwnerAliasDomain\":\"',parameters('domainName'),'\",\"secondaryOwnerAliasUserName\":\"',parameters('adminUserName'),'\"}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
                     }
                 },
                 "protectedSettings": {
@@ -1501,7 +1511,7 @@
                         "DatabaseName":"[parameters('databaseName')]",
                         "AdministrationContentDatabaseName":"[parameters('administrationContentDatabaseName')]",
                         "DatabaseServer":"[concat(variables('sqlVMName'),'1.',parameters('domainName'))]",
-                        "Configuration":"[concat('{\"roles\":[{\"type\":\"application\",\"properties\":{\"fqdn\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":',variables('spCentralAdminPort'),'}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'\"}')]"
+                        "Configuration":"[concat('{\"roles\":[{\"type\":\"application\",\"properties\":{\"fqdn\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":',variables('spCentralAdminPort'),'}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
                     }
                 },
                 "protectedSettings": {
@@ -1555,7 +1565,7 @@
                         "DatabaseName":"[parameters('databaseName')]",
                         "AdministrationContentDatabaseName":"[parameters('administrationContentDatabaseName')]",
                         "DatabaseServer":"[concat(variables('sqlVMName'),'1.',parameters('domainName'))]",
-                        "Configuration":"[concat('{\"roles\":[{\"type\":\"web\",\"properties\":{\"webApp\":{\"name\":\"spARM\",\"applicationPool\":\"spARM AppPool\",\"applicationPoolAccount\":\"', parameters('sharePointFarmAccountUserName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":80,\"hostHeader\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"databaseName\":\"',variables('spContentDatabase'),'\"},\"site\":{\"name\":\"spARM\",\"template\":\"',parameters('spSiteTemplateName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"ownerAliasDomain\":\"',parameters('domainName'),'\",\"ownerAliasUserName\":\"',parameters('sharePointFarmAccountUserName'),'\",\"secondaryOwnerAliasDomain\":\"',parameters('domainName'),'\",\"secondaryOwnerAliasUserName\":\"',parameters('adminUserName'),'\"}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'\"}')]"
+                        "Configuration":"[concat('{\"roles\":[{\"type\":\"web\",\"properties\":{\"webApp\":{\"name\":\"spARM\",\"applicationPool\":\"spARM AppPool\",\"applicationPoolAccount\":\"', parameters('sharePointFarmAccountUserName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":80,\"hostHeader\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"databaseName\":\"',variables('spContentDatabase'),'\"},\"site\":{\"name\":\"spARM\",\"template\":\"',parameters('spSiteTemplateName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"ownerAliasDomain\":\"',parameters('domainName'),'\",\"ownerAliasUserName\":\"',parameters('sharePointFarmAccountUserName'),'\",\"secondaryOwnerAliasDomain\":\"',parameters('domainName'),'\",\"secondaryOwnerAliasUserName\":\"',parameters('adminUserName'),'\"}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
                     }
                 },
                 "protectedSettings": {

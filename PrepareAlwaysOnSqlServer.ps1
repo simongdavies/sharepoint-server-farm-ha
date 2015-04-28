@@ -16,6 +16,9 @@ configuration PrepareAlwaysOnSqlServer
         [System.Management.Automation.PSCredential]$SQLServicecreds,
 
         [Parameter(Mandatory)]
+        [System.Management.Automation.PSCredential]SharePointSetupUserAccountcreds,
+
+        [Parameter(Mandatory)]
         [String]$SqlAlwaysOnEndpointName,
 
         [UInt32]$DatabaseEnginePort = 1433,
@@ -159,6 +162,26 @@ configuration PrepareAlwaysOnSqlServer
             Enabled = $true
             Credential = $Admincreds
             DependsOn = "[xADUser]CreateSqlServerServiceAccount"
+        }
+
+        xADUser CreateSetupAccount
+        {
+            DomainAdministratorCredential = $DomainCreds
+            DomainName = $DomainName
+            UserName = $SharePointSetupUserAccountcreds.UserName
+            Password =$SharePointSetupUserAccountcreds
+            Ensure = "Present"
+            DependsOn = "[WindowsFeature]ADPS", "[xComputer]DomainJoin"
+        }
+
+        xSqlLogin ConfigureSharePointSetupAccountSqlLogin
+        {
+            Name = "${DomainNetbiosName}\$($SharePointSetupUserAccountcreds.UserName)"
+            LoginType = "WindowsUser"
+            ServerRoles = "securityadmin","dbcreator"
+            Enabled = $true
+            Credential = $ADmincreds
+            DependsOn = "[xADUser]CreateSetupAccount"
         }
 
         xSqlServer ConfigureSqlServerWithAlwaysOn

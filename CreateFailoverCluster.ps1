@@ -16,6 +16,9 @@ configuration CreateFailoverCluster
         [System.Management.Automation.PSCredential]$SQLServiceCreds,
 
         [Parameter(Mandatory)]
+        [System.Management.Automation.PSCredential]SharePointSetupUserAccountcreds,
+
+        [Parameter(Mandatory)]
         [String]$ClusterName,
 
         [Parameter(Mandatory)]
@@ -30,7 +33,7 @@ configuration CreateFailoverCluster
         [Parameter(Mandatory)]
         [String]$SqlAlwaysOnAvailabilityGroupListenerName,
 
-        [UInt32]$SqlAlwaysOnAvailabilityGroupListenerPort,
+        [UInt32]$SqlAlwaysOnAvailabilityGroupListenerPort=1433,
 
         [Parameter(Mandatory)]
         [String]$LBName,
@@ -47,6 +50,8 @@ configuration CreateFailoverCluster
         [Parameter(Mandatory)]
         [String]$SqlAlwaysOnEndpointName,
 
+        [String]$DNSServerName='dc-pdc',
+
         [UInt32]$DatabaseEnginePort = 1433,
 
         [String]$DomainNetbiosName=(Get-NetBIOSName -DomainName $DomainName),
@@ -59,7 +64,11 @@ configuration CreateFailoverCluster
 
     Import-DscResource -ModuleName xComputerManagement, xFailOverCluster,CDisk,xActiveDirectory,XDisk,xSqlPs,xNetworking, xSql, xSQLServer
     [System.Management.Automation.PSCredential]$DomainCreds = New-Object System.Management.Automation.PSCredential ("${DomainNetbiosName}\$($Admincreds.UserName)", $Admincreds.Password)
+    [System.Management.Automation.PSCredential]$DomainFQDNCreds = New-Object System.Management.Automation.PSCredential ("${DomainName}\$($Admincreds.UserName)", $Admincreds.Password)
     [System.Management.Automation.PSCredential]$SQLCreds = New-Object System.Management.Automation.PSCredential ("${DomainNetbiosName}\$($SQLServiceCreds.UserName)", $SQLServiceCreds.Password)
+    [string]$LBFQName="${LBName}.${DomainName}"
+    
+    Enable-CredSSPNTLM -DomainName $DomainName
     
     WaitForSqlSetup
 
@@ -213,6 +222,26 @@ configuration CreateFailoverCluster
             DependsOn = "[xADUser]CreateSqlServerServiceAccount"
         }
 
+        xADUser CreateSetupAccount
+        {
+            DomainAdministratorCredential = $DomainCreds
+            DomainName = $DomainName
+            UserName = $SharePointSetupUserAccountcreds.UserName
+            Password =$SharePointSetupUserAccountcreds
+            Ensure = "Present"
+            DependsOn = "[WindowsFeature]ADPS", "[xComputer]DomainJoin"
+        }
+
+        xSqlLogin ConfigureSharePointSetupAccountSqlLogin
+        {
+            Name = "${DomainNetbiosName}\$($SharePointSetupUserAccountcreds.UserName)"
+            LoginType = "WindowsUser"
+            ServerRoles = "securityadmin","dbcreator"
+            Enabled = $true
+            Credential = $ADmincreds
+            DependsOn = "[xADUser]CreateSetupAccount"
+        }
+
         xSqlServer ConfigureSqlServerWithAlwaysOn
         {
             InstanceName = $env:COMPUTERNAME
@@ -232,7 +261,7 @@ configuration CreateFailoverCluster
             Name = $SqlAlwaysOnEndpointName
             PortNumber = 5022
             AllowedUser = $SQLServiceCreds.UserName
-            SqlAdministratorCredential = $Domaincreds
+            SqlAdministratorCredential = $SQLCreds
             DependsOn = "[xSqlServer]ConfigureSqlServerWithAlwaysOn"
         }
 
@@ -241,6 +270,7 @@ configuration CreateFailoverCluster
             InstanceName = $SecondaryReplica
             SqlAdministratorCredential = $Admincreds
             Hadr = "Enabled"
+            DomainAdministratorCredential = $DomainFQDNCreds
         }
 
         xSqlEndpoint SqlSecondaryAlwaysOnEndpoint
@@ -249,7 +279,7 @@ configuration CreateFailoverCluster
             Name = $SqlAlwaysOnEndpointName
             PortNumber = 5022
             AllowedUser = $SQLServiceCreds.UserName
-            SqlAdministratorCredential = $Domaincreds
+            SqlAdministratorCredential = $SQLCreds
         }
         
         xSqlAvailabilityGroup SqlAG
@@ -261,24 +291,21 @@ configuration CreateFailoverCluster
             DomainCredential =$DomainCreds
             SqlAdministratorCredential = $Admincreds
         }
-        WindowsFeature DNSPS
-        {
-            Name = "RSAT-DNS-Server"
-            Ensure = "Present"
-        } 
         
-        Script UpdateDNS
-        {
-            SetScript = "Add-DnsServerResourceRecordA -Name $LBName -ZoneName $DomainName -IPv4Address $LBAddress -ErrorAction 'continue'"
-            TestScript = "Get-DnsServerResourceRecord -Name $LBName -ZoneName $DomainName -ErrorAction 'silentlycontinue'"
-            GetScript = "@{LBAddress=$LBAddress}"   
+        xSQLAddListenerIPToDNS UpdateDNSServer
+        {      
+            Credential =$DomainCreds
+            LBName=$LBName
+            LBAddress=$LBAddress
+            DomainName=$DomainName 
+            DNSServerName=$DNSServerName 
         }
 
         xSqlAvailabilityGroupListener SqlAGListener
         {
             Name = $SqlAlwaysOnAvailabilityGroupListenerName
             AvailabilityGroupName = $SqlAlwaysOnAvailabilityGroupName
-            DomainNameFqdn = $DomainNameFqdn
+            DomainNameFqdn = $LBFQName
             ListenerPortNumber = $SqlAlwaysOnAvailabilityGroupListenerPort
             ProbePortNumber = 59999
             InstanceName = $env:COMPUTERNAME
@@ -286,22 +313,54 @@ configuration CreateFailoverCluster
             SqlAdministratorCredential = $Admincreds
             DependsOn = "[xSqlAvailabilityGroup]SqlAG"
         }
-        
-        Script ConfigureDatabases
+           
+        xSqlNewAGDatabase SQLAGDatabases
         {
-            SetScript = "Configure-Databases -DatabaseNames $DatabaseNames -SqlAdministratorCredential $SQLCreds -PrimaryReplica $PrimaryReplica -SecondaryReplica $SecondaryReplica -SqlAlwaysOnAvailabilityGroupName $SqlAlwaysOnAvailabilityGroupName"
-            TestScript = "Test-Databases -DatabaseNames $DatabaseNames -SqlAdministratorCredential $SQLCreds -PrimaryReplica $PrimaryReplica -SecondaryReplica $SecondaryReplica -SqlAlwaysOnAvailabilityGroupName $SqlAlwaysOnAvailabilityGroupName"
-            GetScript = "@{DatabaseNames=$DatabaseNames}"   
-            DependsOn = "[xSqlAvailabilityGroupListener]SqlAGListener" 
+            SqlAlwaysOnAvailabilityGroupName = $SqlAlwaysOnAvailabilityGroupName
+            DatabaseNames = $DatabaseNames
+            PrimaryReplica = $PrimaryReplica
+            SecondaryReplica = $SecondaryReplica
+            SqlAdministratorCredential = $SQLCreds
         }
-            
+
         LocalConfigurationManager 
         {
             ActionAfterReboot = 'StopConfiguration'
         }
+
     }
 
-    
+}
+function Update-DNS
+{
+    param(
+        [string]$LBName,
+        [string]$LBAddress,
+        [string]$DomainName
+
+        )
+               
+        $ARecord=Get-DnsServerResourceRecord -Name $LBName -ZoneName $DomainName -ErrorAction SilentlyContinue -RRType A
+        if (-not $Arecord)
+        {
+            Add-DnsServerResourceRecordA -Name $LBName -ZoneName $DomainName -IPv4Address $LBAddress
+        }
+}
+function WaitForSqlSetup
+{
+    # Wait for SQL Server Setup to finish before proceeding.
+    while ($true)
+    {
+        try
+        {
+            Get-ScheduledTaskInfo "\ConfigureSqlImageTasks\RunConfigureImage" -ErrorAction Stop
+            Start-Sleep -Seconds 5
+        }
+        catch
+        {
+            break
+        }
+    }
 }
 function Get-NetBIOSName
 { 
@@ -326,377 +385,55 @@ function Get-NetBIOSName
         }
     }
 }
-function Test-Databases
-{
+function Enable-CredSSPNTLM
+{ 
     param(
-        [String[]]$DatabaseNames,
-        [PSCredential]$SqlAdministratorCredential,
-        [string]$PrimaryReplica,
-        [string]$SecondaryReplica,
-        [string]$SqlAlwaysOnAvailabilityGroupName
-    )
-
-    # Required SQL managability modules
-    [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null
-    [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.SmoExtended") | Out-Null
-    [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.ConnectionInfo") | Out-Null
-    
-    if ($null -ne $DatabaseNames) {
-        # Primamry Replica connection
-        $primaryServer = Get-SqlServer $PrimaryReplica -SqlAdministratorCredential $SqlAdministratorCredential
-        $replicaServer = Get-SqlServer $SecondaryReplica -SqlAdministratorCredential $SqlAdministratorCredential
-        $primaryAG = $primaryServer.AvailabilityGroups | where { $_.Name -eq $SqlAlwaysOnAvailabilityGroupName }
-        $secondaryAG = $replicaServer.AvailabilityGroups | where { $_.Name -eq $SqlAlwaysOnAvailabilityGroupName }
-
-        foreach ($database in $DatabaseNames)
-        {
-            if($null -ne $Server.Databases[$DatabaseName] ) {
-
-                if (($secondaryAG.AvailabilityDatabases | Where-Object { $_.Name -eq $database }).IsJoined) {
-                    continue
-                }
-                else {
-                    return $false
-                }
-                 
-            }
-            else {
-                return $false
-            }
-        } 
-    }
-
-    return $true
-}
-function Configure-Databases
-{
-    param(
-        [String[]]$DatabaseNames,
-        [PSCredential]$SqlAdministratorCredential,
-        [string]$PrimaryReplica,
-        [string]$SecondaryReplica,
-        [string]$SqlAlwaysOnAvailabilityGroupName
-
-
+        [Parameter(Mandatory=$true)]
+        [string]$DomainName
     )
     
-    # Required SQL managability modules
-    [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null
-    [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.SmoExtended") | Out-Null
+    # This is needed for the case where NTLM authentication is used
 
+    Write-Verbose 'STARTED:Setting up CredSSP for NTLM'
+   
+    Enable-WSManCredSSP -Role client -DelegateComputer localhost, *.$DomainName -Force -ErrorAction SilentlyContinue
+    Enable-WSManCredSSP -Role server -Force -ErrorAction SilentlyContinue
 
-    #If there are databases specified, then we create them, backup them up and add them to the specified AG replicas
-    if ($null -ne $DatabaseNames)
+    if(-not (Test-Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation -ErrorAction SilentlyContinue))
     {
-        
-        # Primamry Replica connection
-        $primaryServer = Get-SqlServer $PrimaryReplica -SqlAdministratorCredential $SqlAdministratorCredential
-
-        #create database on the primary, then add them to all replicas and sync them
-        foreach ($database in $DatabaseNames)
-        {
-            Write-Verbose -Message "Creating sample database '$($database)' ..."
-            Create-SqlAlwaysOnDatabase -DatabaseName $database -Server $primaryServer
-
-            #synchronize existing availability group replicas
-            Update-SqlAlwaysOnAvailabilityGroupDatabases -SqlAlwaysOnAvailabilityGroupName $SqlAlwaysOnAvailabilityGroupName -PrimaryReplica $PrimaryReplica -SecondaryReplica $SecondaryReplica -SqlAdministratorCredential $SqlAdministratorCredential
-        }
-
-        Write-Verbose -Message "Adding databases Availability Group '$SqlAlwaysOnAvailabilityGroupName' completed."
-    }
-    else
-    {
-        Write-Verbose -Message "No databases were specified to add to Availability Group '$SqlAlwaysOnAvailabilityGroupName'."
-    }
-}
-
-function Update-SqlAlwaysOnAvailabilityGroupDatabases([String]$SqlAlwaysOnAvailabilityGroupName, [String]$PrimaryReplica, [String]$SecondaryReplica, [PSCredential]$SqlAdministratorCredential)
-{
-    # Required SQL managability modules
-    [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null
-    [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.SmoExtended") | Out-Null
-
-    # Primamry Replica connection
-    $primaryServer = Get-SqlServer $PrimaryReplica -SqlAdministratorCredential $SqlAdministratorCredential
-
-    # Secondary Replica connection
-    $replicaServer = Get-SqlServer $SecondaryReplica -SqlAdministratorCredential $SqlAdministratorCredential
-
-    # AG on primary
-    $primaryAG = $primaryServer.AvailabilityGroups | where { $_.Name -eq $SqlAlwaysOnAvailabilityGroupName }
-
-    # AG on secondary
-    $secondaryAG = $replicaServer.AvailabilityGroups | where { $_.Name -eq $SqlAlwaysOnAvailabilityGroupName }
-
-    # Prepare the backup share
-    $backupFolder = [guid]::NewGuid().ToString()
-    $backupPath = "$env:TEMP\$backupFolder"
-    $backupShare = "\\$env:COMPUTERNAME\$backupFolder"
-    Create-SqlAlwaysOnBackupShare -BackupShare $backupFolder -BackupPath $backupPath -ServiceAccount $primaryServer.ServiceAccount
-
-    # Sync existing primary and secondary databases
-    $databases = $primaryServer.Databases | where { $_.IsSystemObject -eq $false }
-
-    foreach ($database in $databases)
-    {
-        # Skip any databases joined to the availability group on the secondary replica.
-        if (($secondaryAG.AvailabilityDatabases | Where-Object { $_.Name -eq $Database.Name }).IsJoined)
-        {
-            Write-Verbose -Message "Database '$($database.Name)' already joined to availability group '$($secondaryAG.Name)', skipping ..."
-            continue
-        }
-
-        # Backup the database and log from the primary replica.
-        $device = "$backupShare\$($database.Name).bak"
-        Write-Verbose -Message "Backing up database '$($database.Name)' from '$($PrimaryServer.Name)' to '$($device)' ..."
-        $backup = New-Object Microsoft.SqlServer.Management.Smo.Backup
-        $backup.Database = $database.Name
-        $backup.Action = [Microsoft.SqlServer.Management.Smo.BackupActionType]::Database
-        $backup.Initialize = $true
-        $backup.Devices.AddDevice($device, [Microsoft.SqlServer.Management.Smo.DeviceType]::File)
-        $backup.SqlBackup($PrimaryServer)
-        Write-Verbose -Message "Successfully backed up database '$($database.Name)'."
-
-        $device = "$backupShare\$($database.Name).log"
-        Write-Verbose -Message "Backing up log for database '$($database.Name)' from '$($PrimaryServer.Name)' to '$($device)' ..."
-        $backup = New-Object Microsoft.SqlServer.Management.Smo.Backup
-        $backup.Database = $database.Name
-        $backup.Action = [Microsoft.SqlServer.Management.Smo.BackupActionType]::Log
-        $backup.Initialize = $true
-        $backup.Devices.AddDevice($device, [Microsoft.SqlServer.Management.Smo.DeviceType]::File)
-        $backup.SqlBackup($PrimaryServer)
-        Write-Verbose -Message "Successfully backed up log for database '$($database.Name)'."
-
-        # Restore the database and log to the secondary replica.
-        $device = "$backupShare\$($database.Name).bak"
-        Write-Verbose -Message "Restoring database '$($database.Name)' from '$($device)' to '$($PrimaryServer.Name)' ..."
-        $restore = New-Object Microsoft.SqlServer.Management.Smo.Restore
-        $restore.Database = $database.Name
-        $restore.Action = [Microsoft.SqlServer.Management.Smo.RestoreActionType]::Database
-        $restore.Devices.AddDevice($device, [Microsoft.SqlServer.Management.Smo.DeviceType]::File)
-        $restore.NoRecovery = $true
-        $restore.SqlRestore($replicaServer)
-        Write-Verbose -Message "Successfully restored database '$($database.Name)'."
-
-        $device = "$backupShare\$($database.Name).log"
-        Write-Verbose -Message "Restoring log for database '$($database.Name)' from '$($device)' to '$($PrimaryServer.Name)' ..."
-        $restore = New-Object Microsoft.SqlServer.Management.Smo.Restore
-        $restore.Database = $database.Name
-        $restore.Action = [Microsoft.SqlServer.Management.Smo.RestoreActionType]::Log
-        $restore.Devices.AddDevice($device, [Microsoft.SqlServer.Management.Smo.DeviceType]::File)
-        $restore.NoRecovery = $true
-        $restore.SqlRestore($replicaServer)
-        Write-Verbose -Message "Successfully restored database '$($database.Name)'."
-
-        # Add the database to the availability group.
-        if (-not ($primaryAG.AvailabilityDatabases | Where-Object { $_.Name -eq $Database.Name }))
-        {
-            Write-Verbose -Message "Adding database '$($database.Name)' to availability group '$($primaryAG.Name)' ..."
-            $adb = New-Object Microsoft.SqlServer.Management.Smo.AvailabilityDatabase $primaryAG,$database.Name
-            $primaryAG.AvailabilityDatabases.Add($adb)
-            $adb.Create()
-            $primaryAG.Alter()
-            Write-Verbose -Message "Successfully added database '$($database.Name)' to availability group."
-        }
-
-        # It can take some time before the database shows up in the availability group on the secondary replica.
-        while ($true)
-        {
-            $secondaryAG.AvailabilityDatabases.Refresh()
-            $databaseOnSecondary = $secondaryAG.AvailabilityDatabases | Where-Object { $_.Name -eq $Database.Name }
-            if ($databaseOnSecondary)
-            {
-                break
-            }
-
-            Write-Verbose -Message "Waiting for database '$($database.Name)' to be available ..."
-            Start-Sleep -Seconds 20
-        }
-
-        # Join the database to availabiliy group on secondary replica.
-        if (-not $databaseOnSecondary.IsJoined)
-        {
-            Write-Verbose -Message "Joining database '$($databaseOnSecondary.Name)' to availability group '$($secondaryAG.Name)' ..."
-            $databaseOnSecondary.JoinAvailablityGroup()
-            Write-Verbose -Message "Successfully joined database '$($databaseOnSecondary.Name)' to availability group."
-        }
+        New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows -Name '\CredentialsDelegation' -ErrorAction SilentlyContinue
     }
 
-    # AG Replica
-    $primaryAG.AvailabilityReplicas.Refresh()
-    $secondaryAGReplica = $primaryAG.AvailabilityReplicas | where { $_.Name -eq $SecondaryReplica }
-
-    # Verify the replica is in read only mode. If not, then set it
-    if($secondaryAGReplica.ConnectionModeInSecondaryRole -ne [Microsoft.SqlServer.Management.Smo.AvailabilityReplicaConnectionModeInSecondaryRole]::AllowReadIntentConnectionsOnly)
+    if( -not (Get-ItemProperty HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation -Name 'AllowFreshCredentialsWhenNTLMOnly' -ErrorAction SilentlyContinue))
     {
-        Write-Verbose -Message "Setting replica $SecondaryReplica read only mode"
-
-        $secondaryAGReplica.ConnectionModeInSecondaryRole = [Microsoft.SqlServer.Management.Smo.AvailabilityReplicaConnectionModeInSecondaryRole]::AllowReadIntentConnectionsOnly
-        $secondaryAGReplica.Alter()
-
-        Write-Verbose -Message "Set replica $SecondaryReplica read only mode completed!"
-    }
-    else
-    {
-        Write-Verbose -Message "Replica $SecondaryReplica is already in read only mode"
+        New-ItemProperty HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation -Name 'AllowFreshCredentialsWhenNTLMOnly' -value '1' -PropertyType dword -ErrorAction SilentlyContinue
     }
 
-    Write-Verbose -Message "Cleaning up backups ..."
-    Remove-SmbShare -Name $backupFolder -Force | Out-Null
-
-    Write-Verbose -Message "Removed share '$($backupShare)'."
-    Remove-Item -Path $backupPath -Recurse -Force | Out-Null
-    Write-Verbose -Message "Removed directory '$($backupPath)'."
-}
-
-
-# Create a database on a SQL Server instance if the database does not already exists. The user can provide a custom location of the database
-# Data and Log files or accept the default by not setting the corresponding variables.
-function Create-SqlAlwaysOnDatabase([string]$DatabaseName, [string]$DataPath, [string]$LogPath, [Microsoft.SqlServer.Management.Smo.Server]$Server)
-{
-    [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.ConnectionInfo") | Out-Null
-    [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.SMO") | Out-Null
-
-    if($null -eq $Server.Databases[$DatabaseName] )
+    if (-not (Get-ItemProperty HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation -Name 'ConcatenateDefaults_AllowFreshNTLMOnly' -ErrorAction SilentlyContinue))
     {
-        #create the database
-        $db = new-object ('Microsoft.SqlServer.Management.Smo.Database') ($Server, $DatabaseName)
-
-
-        # if a location for data and log is provided then use the user provided. Otherwise, we create it using the default ones
-        if($DataPath -and $LogPath)
-        {
-            if (!(Test-Path -path $DataPath))
-            {
-                #create the flder
-                New-Item $DataPath -Type Directory
-            }
-
-            if (!(Test-Path -path $LogPath))
-            {
-                #create the flder
-                New-Item $LogPath -Type Directory
-            }
-
-            $sysfg = new-object ('Microsoft.SqlServer.Management.Smo.FileGroup') ($db, 'PRIMARY')
-
-            $db.FileGroups.Add($sysfg)
-
-            $appfg = new-object ('Microsoft.SqlServer.Management.Smo.FileGroup') ($db, 'AppFileGroup')
-
-            $db.FileGroups.Add($appfg)
-
-            $syslogname = $DatabaseName + '_SysData'
-
-            $dbdsysfile = new-object ('Microsoft.SqlServer.Management.Smo.DataFile') ($sysfg, $syslogname)
-
-            # Create the file for the raw data
-            $sysfg.Files.Add($dbdsysfile)
-            $dbdsysfile.FileName = $DataPath + '\' + $syslogname + '.mdf'
-            $dbdsysfile.Size = [double](5.0 * 1024.0)
-            $dbdsysfile.GrowthType = 'None'
-            $dbdsysfile.IsPrimaryFile = 'True'
-
-            # Create the file for the Application tables
-            $applogname = $DatabaseName + '_AppData'
-            $dbdappfile = new-object ('Microsoft.SqlServer.Management.Smo.DataFile') ($appfg, $applogname)
-            $appfg.Files.Add($dbdappfile)
-            $dbdappfile.FileName = $DataPath + '\' + $applogname + '.ndf'
-            $dbdappfile.Size = [double](25.0 * 1024.0)
-            $dbdappfile.GrowthType = 'Percent'
-            $dbdappfile.Growth = 25.0
-            $dbdappfile.MaxSize = [double](100.0 * 1024.0)
-
-            # Create the file for the log
-            $loglogname = $DatabaseName + '_Log'
-            $dblfile = new-object ('Microsoft.SqlServer.Management.Smo.LogFile') ($db, $loglogname)
-            $db.LogFiles.Add($dblfile)
-            $dblfile.FileName = $LogPath + '\' + $loglogname + '.ldf'
-            $dblfile.Size = [double](10.0 * 1024.0)
-            $dblfile.GrowthType = 'Percent'
-            $dblfile.Growth = 25.0
-        }
-
-        # Create the database
-        $db.Create()
-
-        $createDate = $db.CreateDate
-        Write-Verbose -Message "Created database '$DatabaseName' on '$createDate'"
-
-        #refresh the server connection
-        $Server.Refresh()
-    }
-    else
-    {
-        Write-Verbose -Message "Database '$DatabaseName' already exists."
-    }
-}
-
-# create a folder and share it for AlwaysOn backup.
-# If the folder already exists, then we don't create it again
-# If the folder already shared, then we don't modify sharing settings
-# Otherwise, the function creates and share the folder
-function Create-SqlAlwaysOnBackupShare([string]$BackupShare, [string]$BackupPath, [string]$ServiceAccount)
-{
-    Write-Verbose -Message "Creating directory '$($BackupFolder)' ..."
-
-    # create folder if it does not exist
-    if (!(Test-Path -path $BackupPath))
-    {
-        #create the flder
-        New-Item $BackupPath -Type Directory
+        New-ItemProperty HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation -Name 'ConcatenateDefaults_AllowFreshNTLMOnly' -value '1' -PropertyType dword -ErrorAction SilentlyContinue
     }
 
-    # always ACL it for service account
-    icacls.exe "$BackupPath" /grant:r ($ServiceAccount + ":(OI)(CI)F") | Out-Null
-
-    # escape '\'
-    $WMIFolderPath = $BackupPath -replace '\\','\\'
-
-    # if the directory is not shared, then share it
-    if(Get-CimInstance -Query "SELECT * FROM Win32_Share WHERE Path='$WMIFolderPath'")
+    if(-not (Test-Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation\AllowFreshCredentialsWhenNTLMOnly -ErrorAction SilentlyContinue))
     {
-          Write-Verbose  -Message "Folder $WMIFolderPath already shared"
-    }
-    else
-    {
-        New-SmbShare -Name $BackupShare -Path $BackupPath -FullAccess $ServiceAccount -Temporary | Out-Null
-
-        Write-Verbose  -Message "Shared folder $BackupPath as $BackupShare"
-    }
-}
-
-# Create SQL Server SMO object using provided isntance name and credentials
-function Get-SqlServer([string]$InstanceName, [PSCredential]$SqlAdministratorCredential)
-{
-    [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.ConnectionInfo") | Out-Null
-    $sc = New-Object Microsoft.SqlServer.Management.Common.ServerConnection
-
-    $list = $InstanceName.Split("\")
-    if ($list.Count -gt 1 -and $list[1] -eq "MSSQLSERVER")
-    {
-        $sc.ServerInstance = $list[0]
-    }
-    else
-    {
-        $sc.ServerInstance = $InstanceName
+        New-Item -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation -Name 'AllowFreshCredentialsWhenNTLMOnly' -ErrorAction SilentlyContinue
     }
 
-    $sc.ConnectAsUser = $true
-    if ($SqlAdministratorCredential.GetNetworkCredential().Domain -and $SqlAdministratorCredential.GetNetworkCredential().Domain -ne $env:COMPUTERNAME)
+    if (-not (Get-ItemProperty HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation\AllowFreshCredentialsWhenNTLMOnly -Name '1' -ErrorAction SilentlyContinue))
     {
-        $sc.ConnectAsUserName = "$($SqlAdministratorCredential.GetNetworkCredential().UserName)@$($SqlAdministratorCredential.GetNetworkCredential().Domain)"
+        New-ItemProperty HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation\AllowFreshCredentialsWhenNTLMOnly -Name '1' -value "wsman/$env:COMPUTERNAME" -PropertyType string -ErrorAction SilentlyContinue
     }
-    else
+
+    if (-not (Get-ItemProperty HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation\AllowFreshCredentialsWhenNTLMOnly -Name '2' -ErrorAction SilentlyContinue))
     {
-        $sc.ConnectAsUserName = $SqlAdministratorCredential.GetNetworkCredential().UserName
+        New-ItemProperty HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation\AllowFreshCredentialsWhenNTLMOnly -Name '2' -value "wsman/localhost" -PropertyType string -ErrorAction SilentlyContinue
     }
-    $sc.ConnectAsUserPassword = $SqlAdministratorCredential.GetNetworkCredential().Password
 
-    [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null
+    if (-not (Get-ItemProperty HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation\AllowFreshCredentialsWhenNTLMOnly -Name '3' -ErrorAction SilentlyContinue))
+    {
+        New-ItemProperty HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation\AllowFreshCredentialsWhenNTLMOnly -Name '3' -value "wsman/*.$DomainName" -PropertyType string -ErrorAction SilentlyContinue
+    }
 
-    $s = New-Object Microsoft.SqlServer.Management.Smo.Server $sc
-
-    $s
+    Write-Verbose "DONE:Setting up CredSSP for NTLM"
 }
 

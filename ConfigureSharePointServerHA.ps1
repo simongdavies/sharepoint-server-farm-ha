@@ -125,17 +125,6 @@ configuration ConfigureSharePointServerHA
                 DependsOn = "[xWaitForADDomain]DscForestWait" 
             }
 
-
-            xADUser CreateSetupAccount
-            {
-                DomainAdministratorCredential = $DomainCreds
-                DomainName = $DomainName
-                UserName = $SharePointSetupUserAccountcreds.UserName
-                Password =$SharePointSetupUserAccountcreds
-                Ensure = "Present"
-                DependsOn = "[WindowsFeature]ADPS", "[xComputer]DomainJoin"
-            }
-
             Group AddSetupUserAccountToLocalAdminsGroup
             {
                 GroupName = "Administrators"
@@ -187,7 +176,7 @@ configuration ConfigureSharePointServerHA
                 Name = 'Windows PowerShell Extensions for SQL Server 2012 '
                 ProductId = 'F353325D-DA71-4F50-878D-A704A35D10BB'
                 Arguments = '/qn'
-                Credential = $Admincreds
+                Credential = $DomainCreds
             } 
             Package SharedManagementObjects
             {
