@@ -16,7 +16,7 @@ configuration PrepareAlwaysOnSqlServer
         [System.Management.Automation.PSCredential]$SQLServicecreds,
 
         [Parameter(Mandatory)]
-        [System.Management.Automation.PSCredential]SharePointSetupUserAccountcreds,
+        [System.Management.Automation.PSCredential]$SharePointSetupUserAccountcreds,
 
         [Parameter(Mandatory)]
         [String]$SqlAlwaysOnEndpointName,

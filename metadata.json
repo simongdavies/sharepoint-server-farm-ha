@@ -1,7 +1,7 @@
 {
-	"itemDisplayName": "Create an new AD Forest and Domain with 2 Domain Controllers in an availability set",
-	"description": "This template creates two new Azure VMs, with a public IP address, NAT'd RDP ports, load balancer and VNet, it configures two VM to be  AD DCs for a new Forest and Domain",
-	"summary": "This template creates 2 Azure VMs with AD",
+	"itemDisplayName": "Create an new HA SharePoint Farm",
+	"description": "This template creates nine new Azure VMs, with a public IP address, NAT'd RDP port for one VM, load balancers and VNet, it configures two VM to be AD DCs for a new Forest and Domain, a Windows Failover Cluster with three VMs, two SQL Server VMs in an availability group and a fileshare witness VM, two SharePoint Web Servers and two SharePoint App Servers",
+	"summary": "This template creates a HA SharePoint Farm with nine Azure VMs",
 	"githubUsername": "simongdavies",
-	"dateUpdated": "2015-04-14"
+	"dateUpdated": "2015-04-28"
 }

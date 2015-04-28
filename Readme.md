@@ -1,11 +1,10 @@
-# Create a 2 new Windows VMs, create a new AD Forest, Domain and 2 DCs in an availability set
+# Create a High Availabilty SharePoint Farm with 9 VMs
 
 This template will deploy 2 new VMs (along with a new VNet, Storage Account and Load Balancer) and create a new  AD forest and domain, each VM will be created as a DC for the new domain and will be placed in an availability set. Each VM will also have an RDP endpoint added with a public load balanced IP address.
 
 There are a number of issues\workarounds in this template and the associated DSC Script:
 
-1. Version 1.7 of the DSC Extension has a problem whereby the script execution policy will not allow scripts to be executed , therefore the DSC script provided updates the execution policy before the DSC extension is run and then sets it back to default once the configuration has been applied.
-2. This template is entirely serial due to some issues between the platform agent and the DSC extension which cause problems when multiple VM and\or extension resources are deployed concurrently, this willbe fixed in the future
+1. This template is entirely serial due to some issues between the platform agent and the DSC extension which cause problems when multiple VM and\or extension resources are deployed concurrently, this willbe fixed in the future
 
 Click the button below to deploy
 
