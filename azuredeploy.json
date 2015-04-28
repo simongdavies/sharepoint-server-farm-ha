@@ -225,7 +225,7 @@
             "metadata": {
                 "Description": "The name of the VM Image to create the SP VMs from"
             },
-            "defaultValue": "a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-201503.01-en.us-127GB.vhd"
+            "defaultValue": "c6e0f177abd8496e934234bd27f46c5d__SharePoint-2013-Trial-1-20-2015"
         },
         "vmContainerName": {
             "type":"string",
@@ -1423,7 +1423,6 @@
                     "ConfigurationFunction": "[variables('spConfigurationFunction')]",
                     "Properties": {
                         "DomainName": "[parameters('domainName')]",
-                        "DNSServer": "[parameters('adPDCNicIPAddress')]",
                         "AdminCreds":{
                             "UserName": "[parameters('adminUserName')]",
                             "Password": "PrivateSettingsRef:AdminPassword"
@@ -1483,7 +1482,6 @@
                     "ConfigurationFunction": "[variables('spConfigurationFunction')]",
                     "Properties": {
                         "DomainName": "[parameters('domainName')]",
-                        "DNSServer": "[parameters('adPDCNicIPAddress')]",
                         "AdminCreds":{
                             "UserName": "[parameters('adminUserName')]",
                             "Password": "PrivateSettingsRef:AdminPassword"
@@ -1538,7 +1536,6 @@
                     "ConfigurationFunction": "[variables('spConfigurationFunction')]",
                     "Properties": {
                         "DomainName": "[parameters('domainName')]",
-                        "DNSServer": "[parameters('adPDCNicIPAddress')]",
                         "AdminCreds":{
                             "UserName": "[parameters('adminUserName')]",
                             "Password": "PrivateSettingsRef:AdminPassword"

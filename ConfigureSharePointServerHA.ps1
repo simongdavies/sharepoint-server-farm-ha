@@ -11,9 +11,6 @@ configuration ConfigureSharePointServerHA
         [String]$DomainName,
 
         [Parameter(Mandatory)]
-        [String]$DNSServer,
-
-        [Parameter(Mandatory)]
         [System.Management.Automation.PSCredential]$Admincreds,
 
         [Parameter(Mandatory)]
@@ -72,19 +69,16 @@ configuration ConfigureSharePointServerHA
 
         Enable-CredSSPNTLM -DomainName $DomainName
 
+        $SQLCLRPath="${PSScriptRoot}\SQLSysClrTypes.msi"
+        $SMOPath="${PSScriptRoot}\SharedManagementObjects.msi"
+        $SQLPSPath="${PSScriptRoot}\PowerShellTools.msi"
+
         Import-DscResource -ModuleName xComputerManagement, xActiveDirectory, xDisk, cConfigureSharepoint, xCredSSP, cDisk,xNetworking,xSQL
     
         Node localhost
         {
 
-            # Need to set DNS Server as the VM will be provisioned before the VNet has been updated
-            xDnsServerAddress DnsServerAddress 
-            { 
-                Address        = $DNSServer
-                InterfaceAlias = 'Ethernet'
-                AddressFamily  = 'IPv4'
-            }
-            xWaitforDisk Disk2
+           xWaitforDisk Disk2
             {
                 DiskNumber = 2
                 RetryIntervalSec =$RetryIntervalSec
@@ -180,26 +174,29 @@ configuration ConfigureSharePointServerHA
             Package SQLCLRTypes
             {
                 Ensure = 'Present' 
-                Path  = 'SQLSysClrTypes.msi'
+                Path  =  $SQLCLRPath
                 Name = 'Microsoft System CLR Types for SQL Server 2012 (x64)'
                 ProductId = 'F1949145-EB64-4DE7-9D81-E6D27937146C'
                 Arguments = '/qn'
+                Credential= $Admincreds
             } 
             Package PowerShellTools
             {
                 Ensure = 'Present' 
-                Path  = 'PowerShellTools.msi'
+                Path  = $SQLPSPath
                 Name = 'Windows PowerShell Extensions for SQL Server 2012 '
                 ProductId = 'F353325D-DA71-4F50-878D-A704A35D10BB'
                 Arguments = '/qn'
+                Credential = $Admincreds
             } 
             Package SharedManagementObjects
             {
                 Ensure = 'Present' 
-                Path  = 'SharedManagementObjects.msi'
+                Path  = $SMOPath
                 Name = 'Microsoft SQL Server 2012 Management Objects  (x64)'
                 ProductId = 'FA0A244E-F3C2-4589-B42A-3D522DE79A42'
                 Arguments = '/qn'
+                Credential = $Admincreds
             }
 
             # This does nothing if Databasenames is null
