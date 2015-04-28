@@ -39,7 +39,7 @@ configuration ConfigureSharePointServerHA
 
         [String]$SqlAlwaysOnAvailabilityGroupName,
         
-        [String][]$DatabaseNames,
+        [String[]]$DatabaseNames,
         
         [String]$PrimaryReplica,
         
