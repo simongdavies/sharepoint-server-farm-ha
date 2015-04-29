@@ -131,7 +131,7 @@ configuration ConfigureSharePointServerHA
                 Credential = $DomainCreds
                 MembersToInclude = "${DomainName}\$($SharePointSetupUserAccountcreds.UserName)"
                 Ensure="Present"
-                DependsOn = "[xAdUser]CreateSetupAccount"
+                DependsOn = "[xComputer]DomainJoin"
             }
 
             xADUser CreateFarmAccount
@@ -155,7 +155,7 @@ configuration ConfigureSharePointServerHA
                 FarmAccountCredential=$SharePointFarmAccountcreds
                 FarmPassphrase=$SharePointFarmPassphrasecreds
                 Configuration=$Configuration
-                DependsOn = "[xADUser]CreateFarmAccount","[xADUser]CreateSetupAccount", "[Group]AddSetupUserAccountToLocalAdminsGroup"
+                DependsOn = "[xADUser]CreateFarmAccount", "[Group]AddSetupUserAccountToLocalAdminsGroup"
             }
 
             # These packages should really only be installed on one server but they only take seconds to install and dont require a reboot
@@ -166,7 +166,6 @@ configuration ConfigureSharePointServerHA
                 Path  =  $SQLCLRPath
                 Name = 'Microsoft System CLR Types for SQL Server 2012 (x64)'
                 ProductId = 'F1949145-EB64-4DE7-9D81-E6D27937146C'
-                Arguments = '/qn'
                 Credential= $Admincreds
             } 
             Package PowerShellTools
@@ -175,7 +174,6 @@ configuration ConfigureSharePointServerHA
                 Path  = $SQLPSPath
                 Name = 'Windows PowerShell Extensions for SQL Server 2012 '
                 ProductId = 'F353325D-DA71-4F50-878D-A704A35D10BB'
-                Arguments = '/qn'
                 Credential = $DomainCreds
             } 
             Package SharedManagementObjects
@@ -184,7 +182,6 @@ configuration ConfigureSharePointServerHA
                 Path  = $SMOPath
                 Name = 'Microsoft SQL Server 2012 Management Objects  (x64)'
                 ProductId = 'FA0A244E-F3C2-4589-B42A-3D522DE79A42'
-                Arguments = '/qn'
                 Credential = $Admincreds
             }
 

@@ -42,7 +42,7 @@
             },
             "defaultValue":"spfarmhaVNET"
         },
-        "virtualNetworkPrefix": {
+        "virtualNetworkAddressRange": {
             "type": "string",
             "metadata": {
                 "Description": "The address range of the new VNET in CIDR format"
@@ -135,7 +135,7 @@
             "metadata": {
                 "Description": "The name of the Administrator of the new VMs and Domain"
             },
-            "defaultValue":"agAdministrator"
+            "defaultValue":"spAdministrator"
         },
         "adminPassword": {
             "type": "securestring",
@@ -241,33 +241,6 @@
             },
             "defaultValue":"sphafarm.com"
         },
-        "sqlServerServiceAccountUserName":{
-            "type":"string",
-            "metadata": {
-                "Description": "The SQL Server Service account name"
-            },
-            "defaultValue":"sqlservice"
-        },
-        "sqlServerServiceAccountPassword":{
-            "type": "securestring",
-            "metadata": {
-                "Description": "The SQL Server Service account password"
-            }
-        },
-        "RDPPort":{
-            "type":"int",
-            "metadata": {
-                "Description": "The public RDP port for the VM"
-            },
-            "defaultValue":3389
-        },
-        "AssetLocation":{
-            "type":"string",
-            "metadata": {
-                "Description": "The location of resources such as templates and DSC modules that the script is dependent"
-            },
-            "defaultValue":"https://raw.githubusercontent.com/azurermtemplates/azurermtemplates/master/sharepoint-server-farm-ha"
-        },
         "dnsPrefix": {
             "type":"string",
             "metadata": {
@@ -281,6 +254,33 @@
                 "Description": "The DNS Prefix for the Public IP Address for RDP"
             },
             "defaultValue":"New DNS Prefix for RDP Endpoint"
+        },
+        "rdpPort":{
+            "type":"int",
+            "metadata": {
+                "Description": "The public RDP port for the VM"
+            },
+            "defaultValue":3389
+        },
+        "AssetLocation":{
+            "type":"string",
+            "metadata": {
+                "Description": "The location of resources such as templates and DSC modules that the script is dependent"
+            },
+            "defaultValue":"https://raw.githubusercontent.com/azurermtemplates/azurermtemplates/master/sharepoint-server-farm-ha"
+        },
+        "sqlServerServiceAccountUserName":{
+            "type":"string",
+            "metadata": {
+                "Description": "The SQL Server Service account name"
+            },
+            "defaultValue":"sqlservice"
+        },
+        "sqlServerServiceAccountPassword":{
+            "type": "securestring",
+            "metadata": {
+                "Description": "The SQL Server Service account password"
+            }
         },
         "sharePointSetupUserAccountUserName":{
             "type":"string",
@@ -526,7 +526,7 @@
             "properties": {
                 "addressSpace": {
                 "addressPrefixes": [
-                    "[parameters('virtualNetworkPrefix')]"
+                    "[parameters('virtualNetworkAddressRange')]"
                 ]
                 },
                 "subnets": "[variables('subnets')]"
@@ -565,7 +565,7 @@
                                 "id": "[variables('rdplbFEConfigID')]"
                             },
                             "protocol": "tcp",
-                            "frontendPort": "[parameters('RDPPort')]",
+                            "frontendPort": "[parameters('rdpPort')]",
                             "backendPort": 3389,
                             "enableFloatingIP": false
                         }
@@ -953,7 +953,7 @@
                 "parameters": {
                     "deploymentLocation": {"value":"[parameters('deploymentLocation')]"},
                     "virtualNetworkName": {"value":"[parameters('virtualNetworkName')]"},
-                    "virtualNetworkAddressRange": {"value":"[parameters('virtualNetworkPrefix')]"},
+                    "virtualNetworkAddressRange": {"value":"[parameters('virtualNetworkAddressRange')]"},
                     "subnets": {"value":"[variables('subnets')]"},
                     "DNSServerAddress": {"value":["[parameters('adPDCNicIPAddress')]"]}
                 }
@@ -1057,7 +1057,7 @@
                 "parameters": {
                     "deploymentLocation": {"value":"[parameters('deploymentLocation')]"},
                     "virtualNetworkName": {"value":"[parameters('virtualNetworkName')]"},
-                    "virtualNetworkAddressRange": {"value":"[parameters('virtualNetworkPrefix')]"},
+                    "virtualNetworkAddressRange": {"value":"[parameters('virtualNetworkAddressRange')]"},
                     "subnets": {"value":"[variables('subnets')]"},
                     "DNSServerAddress": {"value":["[parameters('adPDCNicIPAddress')]","[parameters('adBDCNicIPAddress')]"]}
                 }
@@ -1249,8 +1249,8 @@
                 "protectedSettings": {
                     "Items": {
                         "AdminPassword": "[parameters('adminPassword')]",
+                        "SqlServerServiceAccountPassword": "[parameters('sqlServerServiceAccountPassword')]",
                         "SharePointSetupUserAccountPassword": "[parameters('sharePointSetupUserAccountPassword')]",
-                        "SqlServerServiceAccountPassword": "[parameters('sqlServerServiceAccountPassword')]"
                     }
                 }
             }
@@ -1303,8 +1303,8 @@
                 "protectedSettings": {
                     "Items": {
                         "AdminPassword": "[parameters('adminPassword')]",
-                        "SharePointSetupUserAccountPassword": "[parameters('sharePointSetupUserAccountPassword')]",
-                        "SqlServerServiceAccountPassword": "[parameters('sqlServerServiceAccountPassword')]"
+                        "SqlServerServiceAccountPassword": "[parameters('sqlServerServiceAccountPassword')]",
+                        "SharePointSetupUserAccountPassword": "[parameters('sharePointSetupUserAccountPassword')]"
                     }
                 }
             }
