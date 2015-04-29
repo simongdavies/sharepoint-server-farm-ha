@@ -168,14 +168,6 @@ configuration ConfigureSharePointServerHA
                 ProductId = 'F1949145-EB64-4DE7-9D81-E6D27937146C'
                 Credential= $Admincreds
             } 
-            Package PowerShellTools
-            {
-                Ensure = 'Present' 
-                Path  = $SQLPSPath
-                Name = 'Windows PowerShell Extensions for SQL Server 2012 '
-                ProductId = 'F353325D-DA71-4F50-878D-A704A35D10BB'
-                Credential = $DomainCreds
-            } 
             Package SharedManagementObjects
             {
                 Ensure = 'Present' 
