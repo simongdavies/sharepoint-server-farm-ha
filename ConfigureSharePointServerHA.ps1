@@ -187,7 +187,11 @@ configuration ConfigureSharePointServerHA
                 SecondaryReplica = $SecondaryReplica
                 SqlAdministratorCredential = $SQLCreds
             }
-
+            SAMPLE_cConfigureSPSDBDFailover UpdateSPFailover
+            {
+                DatabaseNames = $DatabaseNames
+                SecondaryReplica = $SecondaryReplica
+            }
             LocalConfigurationManager 
             {
               ActionAfterReboot = 'StopConfiguration'
@@ -216,6 +220,30 @@ function Get-NetBIOSName
         else {
             return $DomainName
         }
+    }
+}
+function Update-SPFailOverInstance
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$DatabaseName
+    )
+    
+    try 
+    {
+        Get-SPDatabase | ForEach-Object 
+        {
+            If ($_.Name -eq $DatabaseName)
+            {
+                $_.AddFailoverServiceInstance($FailoverServerInstance)
+                $_.Update()
+                Write-Verbose -Message "Updated database failover instance for '$($_.Name)'."                
+            }
+        }
+    }
+    catch
+    {
+            Write-Verbose -Message "FAILED: Updating database failover instance for '$($_.Name)'."  
     }
 }
 function Enable-CredSSPNTLM

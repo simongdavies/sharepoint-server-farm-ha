@@ -12,7 +12,7 @@
 			"value":"sdsprdpha15"
 		},
 		"AssetLocation" :{
-			"value":"https://raw.githubusercontent.com/simongdavies/sharepoint-server-farm-ha/master/"
+			"value":"https://raw.githubusercontent.com/simongdavies/sharepoint-server-farm-ha/master"
 		},
 		"deploymentLocation": {
 			"value":"West Europe"

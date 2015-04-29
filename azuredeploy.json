@@ -1514,6 +1514,10 @@
                             "UserName": "ignore",
                             "Password": "PrivateSettingsRef:SharePointFarmPassphrasePassword"
                         },
+                        "SQLServiceCreds":{
+                            "UserName": "[parameters('sqlServerServiceAccountUserName')]",
+                            "Password": "PrivateSettingsRef:SqlServerServiceAccountPassword"
+                        },
                         "DatabaseName":"[parameters('configDatabaseName')]",
                         "AdministrationContentDatabaseName":"[parameters('administrationContentDatabaseName')]",
                         "DatabaseServer":"[concat(variables('sqlVMName'),'1.',parameters('domainName'))]",
@@ -1525,7 +1529,8 @@
                         "AdminPassword": "[parameters('adminPassword')]",
                         "SharePointSetupUserAccountPassword": "[parameters('sharePointSetupUserAccountPassword')]",
                         "SharePointFarmAccountPassword": "[parameters('sharePointFarmAccountPassword')]",
-                        "SharePointFarmPassphrasePassword": "[parameters('sharePointFarmPassphrasePassword')]"
+                        "SharePointFarmPassphrasePassword": "[parameters('sharePointFarmPassphrasePassword')]",
+                        "SqlServerServiceAccountPassword": "[parameters('sqlServerServiceAccountPassword')]"
                     }
                 }
             }
@@ -1568,6 +1573,10 @@
                             "UserName": "ignore",
                             "Password": "PrivateSettingsRef:SharePointFarmPassphrasePassword"
                         },
+                        "SQLServiceCreds":{
+                            "UserName": "[parameters('sqlServerServiceAccountUserName')]",
+                            "Password": "PrivateSettingsRef:SqlServerServiceAccountPassword"
+                        },
                         "DatabaseName":"[parameters('configDatabaseName')]",
                         "AdministrationContentDatabaseName":"[parameters('administrationContentDatabaseName')]",
                         "DatabaseServer":"[concat(variables('sqlVMName'),'1.',parameters('domainName'))]",
@@ -1579,7 +1588,8 @@
                         "AdminPassword": "[parameters('adminPassword')]",
                         "SharePointSetupUserAccountPassword": "[parameters('sharePointSetupUserAccountPassword')]",
                         "SharePointFarmAccountPassword": "[parameters('sharePointFarmAccountPassword')]",
-                        "SharePointFarmPassphrasePassword": "[parameters('sharePointFarmPassphrasePassword')]"
+                        "SharePointFarmPassphrasePassword": "[parameters('sharePointFarmPassphrasePassword')]",
+                        "SqlServerServiceAccountPassword": "[parameters('sqlServerServiceAccountPassword')]"
                     }
                 }
             }
