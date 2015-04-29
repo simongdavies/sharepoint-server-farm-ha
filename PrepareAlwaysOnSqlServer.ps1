@@ -31,7 +31,8 @@ configuration PrepareAlwaysOnSqlServer
 
     Import-DscResource -ModuleName xComputerManagement,CDisk,xActiveDirectory,XDisk,xSql, xSQLServer, xSQLps,xNetworking
     [System.Management.Automation.PSCredential]$DomainCreds = New-Object System.Management.Automation.PSCredential ("${DomainNetbiosName}\$($Admincreds.UserName)", $Admincreds.Password)
-    [System.Management.Automation.PSCredential]$SQLCreds = New-Object System.Management.Automation.PSCredential ("${DomainNetbiosName}\$($SQLServicecreds.UserName)", $SQLServicecreds.Password)
+    [System.Management.Automation.PSCredential]$DomainFQDNCreds = New-Object System.Management.Automation.PSCredential ("${DomainName}\$($Admincreds.UserName)", $Admincreds.Password)
+    [System.Management.Automation.PSCredential]$SQLCreds = New-Object System.Management.Automation.PSCredential ("${DomainNetbiosName}\$($SqlServerServiceAccountcreds.UserName)", $SqlServerServiceAccountcreds.Password)
 
     WaitForSqlSetup
 
@@ -192,7 +193,7 @@ configuration PrepareAlwaysOnSqlServer
             MaxDegreeOfParallelism = 1
             FilePath = "F:\DATA"
             LogPath = "G:\LOG"
-            DomainAdministratorCredential = $DomainCreds
+            DomainAdministratorCredential = $DomainFQDNCreds
             DependsOn = "[xSqlLogin]AddSqlServerServiceAccountToSysadminServerRole"
         }
 
