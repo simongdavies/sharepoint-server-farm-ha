@@ -190,7 +190,9 @@ configuration ConfigureSharePointServerHA
             cConfigureSPSDBDFailover UpdateSPFailover
             {
                 DatabaseNames = $DatabaseNames
-                FailoverServerInstance =  = $SecondaryReplica
+                FailoverServerInstance = $SecondaryReplica
+                SharePointSetupUserAccountcreds=  $SPsetupCreds
+            }
             }
             LocalConfigurationManager 
             {

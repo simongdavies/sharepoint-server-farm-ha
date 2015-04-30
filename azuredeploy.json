@@ -1565,6 +1565,10 @@
 						"DatabaseName":"[parameters('configDatabaseName')]",
 						"AdministrationContentDatabaseName":"[parameters('administrationContentDatabaseName')]",
 						"DatabaseServer":"[concat(variables('sqlVMName'),'1.',parameters('domainName'))]",
+						"SqlAlwaysOnAvailabilityGroupName":"[variables('sqlAOAGName')]",
+						"PrimaryReplica":"[concat(variables('sqlVMName'),'1')]",
+						"SecondaryReplica":"[concat(variables('sqlVMName'),'0')]",
+						"databaseNames":null,
 						"Configuration":"[concat('{\"roles\":[{\"type\":\"application\",\"properties\":{\"fqdn\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":',variables('spCentralAdminPort'),'}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
 					}
 				},
@@ -1623,6 +1627,10 @@
 						},
 						"DatabaseName":"[parameters('configDatabaseName')]",
 						"AdministrationContentDatabaseName":"[parameters('administrationContentDatabaseName')]",
+						"SqlAlwaysOnAvailabilityGroupName":"[variables('sqlAOAGName')]",
+						"PrimaryReplica":"[concat(variables('sqlVMName'),'1')]",
+						"SecondaryReplica":"[concat(variables('sqlVMName'),'0')]",
+						"databaseNames":null,
 						"DatabaseServer":"[concat(variables('sqlVMName'),'1.',parameters('domainName'))]",
 						"Configuration":"[concat('{\"roles\":[{\"type\":\"web\",\"properties\":{\"webApp\":{\"name\":\"spARM\",\"applicationPool\":\"spARM AppPool\",\"applicationPoolAccount\":\"', parameters('sharePointFarmAccountUserName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":80,\"hostHeader\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"databaseName\":\"',parameters('contentDatabaseName'),'\"},\"site\":{\"name\":\"spARM\",\"template\":\"',parameters('spSiteTemplateName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"ownerAliasDomain\":\"',parameters('domainName'),'\",\"ownerAliasUserName\":\"',parameters('sharePointFarmAccountUserName'),'\",\"secondaryOwnerAliasDomain\":\"',parameters('domainName'),'\",\"secondaryOwnerAliasUserName\":\"',parameters('adminUserName'),'\"}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
 					}
