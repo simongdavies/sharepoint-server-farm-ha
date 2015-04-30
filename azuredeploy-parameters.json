@@ -3,19 +3,34 @@
 	"contentVersion": "1.0.0.0",
 	"parameters": {
 		"newStorageAccountName": {
-			"value": "sdspha16"
+			"value": "sdspha19"
 		},
 		"dnsPrefix":{
-			"value":"sdspha16"
+			"value":"sdspha19"
 		},
 		"rdpDNSPrefix":{
-			"value":"sdsprdpha16"
+			"value":"sdsprdpha19"
 		},
 		"AssetLocation" :{
 			"value":"https://raw.githubusercontent.com/simongdavies/sharepoint-server-farm-ha/master"
 		},
 		"deploymentLocation": {
-			"value":"West Europe"
+			"value":"East US"
+		},
+		"adminPassword":{
+			"value":"!!Passw0rd!!"
+		},
+		"sqlServerServiceAccountPassword":{
+			"value":"!!Passw0rd!!"
+		},
+		"sharePointSetupUserAccountPassword":{
+			"value":"!!Passw0rd!!"
+		},
+		"sharePointFarmAccountPassword":{
+			"value":"!!Passw0rd!!"
+		},
+		"sharePointFarmPassphrasePassword":{
+			"value":"!!Passw0rd!!"
 		}
 	}
 }

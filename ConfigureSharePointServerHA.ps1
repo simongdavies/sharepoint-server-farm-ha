@@ -187,10 +187,10 @@ configuration ConfigureSharePointServerHA
                 SecondaryReplica = $SecondaryReplica
                 SqlAdministratorCredential = $SQLCreds
             }
-            SAMPLE_cConfigureSPSDBDFailover UpdateSPFailover
+            cConfigureSPSDBDFailover UpdateSPFailover
             {
                 DatabaseNames = $DatabaseNames
-                SecondaryReplica = $SecondaryReplica
+                FailoverServerInstance =  = $SecondaryReplica
             }
             LocalConfigurationManager 
             {
