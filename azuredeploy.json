@@ -978,7 +978,7 @@
 						"value": "[parameters('deploymentLocation')]"
 					},
 					"nicName": {
-						"value": "[parameters('adBDCNicName')]"
+						"value": "[variables('adBDCNicName')]"
 					},
 					"ipConfigurations": {
 						"value": [
@@ -1061,7 +1061,7 @@
 			"location": "[parameters('deploymentLocation')]",
 			"dependsOn":[
 				"[concat('Microsoft.Compute/virtualMachines/', variables('adBDCVMName'))]",
-				"Microsoft.Resources/deployments/UpdateVNetDNS1"
+				"Microsoft.Resources/deployments/UpdateBDCNIC"
 			],
 			"properties": {
 				"publisher": "Microsoft.Powershell",
