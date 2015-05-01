@@ -193,7 +193,6 @@ configuration ConfigureSharePointServerHA
                 FailoverServerInstance = $SecondaryReplica
                 SharePointSetupUserAccountcreds=  $SPsetupCreds
             }
-            }
             LocalConfigurationManager 
             {
               ActionAfterReboot = 'StopConfiguration'
