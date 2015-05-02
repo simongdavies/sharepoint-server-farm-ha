@@ -255,6 +255,13 @@
 			},
 			"defaultValue":"New DNS Prefix for RDP Endpoint"
 		},
+		"spCentralAdminDNSPrefix": {
+			"type":"string",
+			"metadata": {
+				"Description": "The DNS Prefix for the Public IP Address for the Central Admin site"
+			},
+			"defaultValue":"New DNS Prefix for RDP Endpoint"
+		},
 		"rdpPort":{
 			"type":"int",
 			"metadata": {
@@ -346,12 +353,16 @@
 	"variables": {
 		"rdpLBFE":"rdpLBFE",
 		"sqlLBFE":"sqlLBFE",
-		"spLBFE":"spLBFE",
+		"spWebLBFE":"spWebLBFE",
+		"spCALBFE":"spCALBFE",
 		"adLBBE":"adLBBE",
 		"sqlLBBE":"sqlLBBE",
 		"spWebLBBE":"spWebLBBE",
+		"spCALBBE":"spCALBBE",
 		"RDPNAT":"RDP",
+		"spCANAT":"spCANAT",
 		"spWebLB":"spWeb",
+		"spCALB":"spCALB",
 		"SQLAOListener":"SQLAlwaysOnEndPointListener",
 		"SQLAOProbe":"SQLAlwaysOnEndPointProbe",
 		"staticSubnetName": "staticSubnet",
@@ -366,7 +377,8 @@
 		"spDataDiskSize":1000,
 		"witnessDataDiskSize":1000,
 		"rdpIPAddressName": "rdpIP",
-		"spIPAddressName": "spIP",
+		"spWebIPAddressName": "spWebIP",
+		"spCAIPAddressName": "spCAIP",
 		"sqlAvailabilitySetName":"sqlAvailabiltySet",
 		"adAvailabilitySetName": "adAvailabiltySet",
 		"spWebAvailabilitySetName":"spWebAvailabiltySet",
@@ -377,7 +389,8 @@
 		"noOfspappVMs":2,
 		"sqlLBName" : "sqlLoadBalancer",
 		"rdpLBName" : "rdpLoadBalancer",
-		"spLBName" : "spLoadBalancer",
+		"spWebLBName" : "spWebLoadBalancer",
+		"spCALBName" : "spCALoadBalancer",
 		"sqlAOEPName":"[concat(parameters('dnsPrefix'),'-hadr')]",
 		"sqlAOAGName":"[concat(parameters('dnsPrefix'),'-ag')]",
 		"sqlAOListenerName":"[concat(parameters('dnsPrefix'),'ag-listener')]",
@@ -405,16 +418,20 @@
 		"adIPConfigID": "[concat(variables('adNicId'),'/ipConfigurations/ipconfig1')]",
 		"rdplbID":"[resourceId('Microsoft.Network/loadBalancers',variables('rdpLBName'))]",
 		"rdplbFEConfigID":"[concat(variables('rdplbID'),'/frontendIPConfigurations/',variables('rdpLBFE'))]",
-		"splbID":"[resourceId('Microsoft.Network/loadBalancers',variables('spLBName'))]",
-		"splbFEConfigID":"[concat(variables('splbID'),'/frontendIPConfigurations/',variables('spLBFE'))]",
+		"spWeblbID":"[resourceId('Microsoft.Network/loadBalancers',variables('spWebLBName'))]",
+		"spWebLBFEConfigID":"[concat(variables('spWeblbID'),'/frontendIPConfigurations/',variables('spWebLBFE'))]",
 		"adRDPNATRuleID":"[concat(variables('rdplbID'),'/inboundNatRules/',variables('RDPNAT'))]",
 		"adBEAddressPoolID":"[concat(variables('rdplbID'),'/backendAddressPools/',variables('adLBBE'))]",
-		"spWebProbeID":"[concat(variables('splbID'),'/probes/',variables('spWebProbe'))]",
-		"spBEAddressPoolID":"[concat(variables('splbID'),'/backendAddressPools/',variables('spWebLBBE'))]",
-		"sqlBEAddressPoolID":"[concat(variables('sqllbID'),'/backendAddressPools/',variables('sqlLBBE'))]",
+		"spWebProbeID":"[concat(variables('spWeblbID'),'/probes/',variables('spWebProbe'))]",
+		"spWebBEAddressPoolID":"[concat(variables('spWeblbID'),'/backendAddressPools/',variables('spWebLBBE'))]",
 		"sqllbID":"[resourceId('Microsoft.Network/loadBalancers',variables('sqlLBName'))]",
+		"sqlBEAddressPoolID":"[concat(variables('sqllbID'),'/backendAddressPools/',variables('sqlLBBE'))]",
 		"sqllbFEConfigID":"[concat(variables('sqllbID'),'/frontendIPConfigurations/',variables('sqlLBFE'))]",
 		"sqllbProbeID":"[concat(variables('sqllbID'),'/probes/',variables('SQLAOProbe'))]",
+		"spCAlbID":"[resourceId('Microsoft.Network/loadBalancers',variables('spCALBName'))]",
+		"spCABEAddressPoolID":"[concat(variables('spCAlbID'),'/backendAddressPools/',variables('spCALBBE'))]",
+		"spCAlbFEConfigID":"[concat(variables('spCAlbID'),'/frontendIPConfigurations/',variables('spCALBFE'))]",
+		"spCANATRuleID":"[concat(variables('spCAlbID'),'/inboundNatRules/',variables('spCANAT'))]",
 		"subnets": [
 			{
 				"name": "[variables('staticSubnetName')]",
@@ -482,12 +499,24 @@
 		{
 			"apiVersion": "2014-12-01-preview",
 			"type": "Microsoft.Network/publicIPAddresses",
-			"name": "[variables('spIPAddressName')]",
+			"name": "[variables('spWebIPAddressName')]",
 			"location": "[parameters('deploymentLocation')]",
 			"properties": {
 				"publicIPAllocationMethod": "[parameters('publicIPAddressType')]",
 				"dnsSettings": {
 					"domainNameLabel": "[parameters('dnsPrefix')]"
+				}
+			}
+		},
+		{
+			"apiVersion": "2014-12-01-preview",
+			"type": "Microsoft.Network/publicIPAddresses",
+			"name": "[variables('spCAIPAddressName')]",
+			"location": "[parameters('deploymentLocation')]",
+			"properties": {
+				"publicIPAllocationMethod": "[parameters('publicIPAddressType')]",
+				"dnsSettings": {
+					"domainNameLabel": "[parameters('spCentralAdminDNSPrefix')]"
 				}
 			}
 		},
@@ -576,19 +605,19 @@
 		},
 		{
 			"apiVersion": "2014-12-01-preview",
-			"name": "[variables('splbName')]",
+			"name": "[variables('spWebLBName')]",
 			"type": "Microsoft.Network/loadBalancers",
 			"location": "[parameters('deploymentLocation')]",
 			"dependsOn": [
-				"[resourceId('Microsoft.Network/publicIPAddresses',variables('spIPAddressName'))]"
+				"[resourceId('Microsoft.Network/publicIPAddresses',variables('spWebIPAddressName'))]"
 			],
 			"properties": {
 				"frontendIPConfigurations": [
 					{
-						"name": "[variables('spLBFE')]",
+						"name": "[variables('spWebLBFE')]",
 						"properties": {
 							"publicIPAddress": {
-								"id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('spIPAddressName'))]"
+								"id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('spWebIPAddressName'))]"
 							}
 						}
 					}
@@ -603,8 +632,11 @@
 						"name": "[variables('spWebLB')]",
 						"properties": {
 						"frontendIPConfiguration": {
-							"id": "[variables('splbFEConfigID')]"
+							"id": "[variables('spWebLBFEConfigID')]"
 						},
+						"backendAddressPool": {
+            				"id": "[variables('spWebBEAddressPoolID')]"
+            			},
 						"probe": {
 							"id": "[variables('spwebProbeID')]"
 						},
@@ -623,7 +655,7 @@
 							"port": "[variables('spWebProbePort')]",
 							"intervalInSeconds": "15",
 							"numberOfProbes": "5",
-							"requestPath":"/"
+							"requestPath":"/iistart.htm"
 						}
 					}
 				]
@@ -680,6 +712,47 @@
 							"port": 59999,
 							"intervalInSeconds": "5",
 							"numberOfProbes": "2"
+						}
+					}
+				]
+			}
+		},
+		{
+			"apiVersion": "2014-12-01-preview",
+			"name": "[variables('spCAlbName')]",
+			"type": "Microsoft.Network/loadBalancers",
+			"location": "[parameters('deploymentLocation')]",
+			"dependsOn": [
+				"[resourceId('Microsoft.Network/publicIPAddresses',variables('spCAIPAddressName'))]"
+			],
+			"properties": {
+				"frontendIPConfigurations": [
+					{
+						"name": "[variables('spCALBFE')]",
+						"properties": {
+							"publicIPAddress": {
+								"id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('spCAIPAddressName'))]"
+							}
+						}
+					}
+				],
+				"backendAddressPools": [
+					{
+						"name": "[variables('spCALBBE')]"
+
+					}
+				],
+				"inboundNatRules": [
+					{
+						"name": "[variables('spCANAT')]",
+						"properties": {
+							"frontendIPConfiguration": {
+								"id": "[variables('spCAlbFEConfigID')]"
+							},
+							"protocol": "tcp",
+							"frontendPort": 80,
+							"backendPort": "[variables('spCentralAdminPort')]",
+							"enableFloatingIP": false
 						}
 					}
 				]
@@ -785,7 +858,7 @@
 			},
 			"dependsOn": [
 				"[parameters('virtualNetworkName')]",
-				"[concat('Microsoft.Network/loadBalancers/',variables('spLBName'))]"
+				"[concat('Microsoft.Network/loadBalancers/',variables('spWebLBName'))]"
 			],
 			"properties": {
 				"ipConfigurations": [
@@ -798,7 +871,7 @@
 							},
 							"loadBalancerBackendAddressPools": [
 								{
-									"id":"[variables('spBEAddressPoolID')]"
+									"id":"[variables('spWebBEAddressPoolID')]"
 								}
 							]
 						}
@@ -807,14 +880,43 @@
 			}
 		},
 		{
-			"name": "[concat(variables('spAppVMName'), copyindex(),'-nic')]",
+			"name": "[concat(variables('spAppVMName'),'0-nic')]",
 			"type": "Microsoft.Network/networkInterfaces",
 			"location": "[parameters('deploymentLocation')]",
 			"apiVersion": "2014-12-01-preview",
-			"copy": {
-				"name": "spAppnicLoop",
-				"count": "[variables('noOfspAppVMs')]"
-			},
+			"dependsOn": [
+				"[parameters('virtualNetworkName')]",
+				"[concat('Microsoft.Network/loadBalancers/',variables('spCAlbName'))]"
+			],
+			"properties": {
+				"ipConfigurations": [
+					{
+						"name": "ipconfig1",
+						"properties": {
+							"privateIPAllocationMethod": "Dynamic",
+							"subnet": {
+								"id": "[variables('spappSubnetRef')]"
+							},
+							"loadBalancerBackendAddressPools": [
+								{
+									"id":"[variables('spCABEAddressPoolID')]"
+								}
+							],
+							"loadBalancerInboundNatRules": [
+								{
+									"id": "[variables('spCANATRuleID')]"
+								}
+							]
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "[concat(variables('spAppVMName'),'1-nic')]",
+			"type": "Microsoft.Network/networkInterfaces",
+			"location": "[parameters('deploymentLocation')]",
+			"apiVersion": "2014-12-01-preview",
 			"dependsOn": [
 				"[parameters('virtualNetworkName')]"
 			],
@@ -1510,7 +1612,7 @@
 						"databaseNames":["[parameters('administrationContentDatabaseName')]","[parameters('contentDatabaseName')]","[parameters('configDatabaseName')]"],
 						"AdministrationContentDatabaseName":"[parameters('administrationContentDatabaseName')]",
 						"DatabaseServer":"[concat(variables('sqlVMName'),'1.',parameters('domainName'))]",
-						"Configuration":"[concat('{\"roles\":[{\"type\":\"application\",\"properties\":{\"fqdn\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":',variables('spCentralAdminPort'),'}},{\"type\":\"web\",\"properties\":{\"webApp\":{\"name\":\"spARM\",\"applicationPool\":\"spARM AppPool\",\"applicationPoolAccount\":\"', parameters('sharePointFarmAccountUserName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":80,\"hostHeader\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"databaseName\":\"',parameters('contentDatabaseName'),'\"},\"site\":{\"name\":\"spARM\",\"template\":\"',parameters('spSiteTemplateName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"ownerAliasDomain\":\"',parameters('domainName'),'\",\"ownerAliasUserName\":\"',parameters('sharePointFarmAccountUserName'),'\",\"secondaryOwnerAliasDomain\":\"',parameters('domainName'),'\",\"secondaryOwnerAliasUserName\":\"',parameters('adminUserName'),'\"}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
+						"Configuration":"[concat('{\"roles\":[{\"type\":\"application\",\"properties\":{\"fqdn\":\"',reference(variables('spCAIPAddressName')).dnsSettings.fqdn,'\",\"port\":',variables('spCentralAdminPort'),'}},{\"type\":\"web\",\"properties\":{\"webApp\":{\"name\":\"spARM\",\"applicationPool\":\"spARM AppPool\",\"applicationPoolAccount\":\"', parameters('sharePointFarmAccountUserName'),'\",\"url\":\"http://',reference(variables('spWebIPAddressName')).dnsSettings.fqdn,'\",\"port\":80,\"hostHeader\":\"',reference(variables('spWebIPAddressName')).dnsSettings.fqdn,'\",\"databaseName\":\"',parameters('contentDatabaseName'),'\"},\"site\":{\"name\":\"spARM\",\"template\":\"',parameters('spSiteTemplateName'),'\",\"url\":\"http://',reference(variables('spWebIPAddressName')).dnsSettings.fqdn,'\",\"ownerAliasDomain\":\"',parameters('domainName'),'\",\"ownerAliasUserName\":\"',parameters('sharePointFarmAccountUserName'),'\",\"secondaryOwnerAliasDomain\":\"',parameters('domainName'),'\",\"secondaryOwnerAliasUserName\":\"',parameters('adminUserName'),'\"}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
 					}
 				},
 				"protectedSettings": {
@@ -1569,7 +1671,7 @@
 						"PrimaryReplica":"[concat(variables('sqlVMName'),'1')]",
 						"SecondaryReplica":"[concat(variables('sqlVMName'),'0')]",
 						"databaseNames":null,
-						"Configuration":"[concat('{\"roles\":[{\"type\":\"application\",\"properties\":{\"fqdn\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":',variables('spCentralAdminPort'),'}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
+						"Configuration":"[concat('{\"roles\":[{\"type\":\"application\",\"properties\":{\"fqdn\":\"',reference(variables('spCAIPAddressName')).dnsSettings.fqdn,'\",\"port\":',variables('spCentralAdminPort'),'}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
 					}
 				},
 				"protectedSettings": {
@@ -1585,17 +1687,13 @@
 		},
 		{
 			"type": "Microsoft.Compute/virtualMachines/extensions",
-			"name": "[concat(variables('spWebVMName'), copyindex(),'/ConfigureSPWebServer')]",
+			"name": "[concat(variables('spWebVMName'),'0/ConfigureSPWebServer')]",
 			"apiVersion": "2014-12-01-preview",
 			"location": "[parameters('deploymentLocation')]",
 			"dependsOn": [
-				"[concat('Microsoft.Compute/virtualMachines/', variables('spWebVMName'), copyindex())]",
-				"[concat('Microsoft.Compute/virtualMachines/',variables('spAppVMName'),'0/extensions/ConfigureSPAppServer')]"
+				"[concat('Microsoft.Compute/virtualMachines/', variables('spWebVMName'),'0')]",
+				"[concat('Microsoft.Compute/virtualMachines/',variables('spAppVMName'),'1/extensions/ConfigureSPAppServer')]"
 			],
-			"copy": {
-				"name": "ConfigureSPWebServerLoop",
-				"count": "[variables('noOfspWebVMs')]"
-			},
 			"properties": {
 				"publisher": "Microsoft.Powershell",
 				"type": "DSC",
@@ -1632,7 +1730,66 @@
 						"SecondaryReplica":"[concat(variables('sqlVMName'),'0')]",
 						"databaseNames":null,
 						"DatabaseServer":"[concat(variables('sqlVMName'),'1.',parameters('domainName'))]",
-						"Configuration":"[concat('{\"roles\":[{\"type\":\"web\",\"properties\":{\"webApp\":{\"name\":\"spARM\",\"applicationPool\":\"spARM AppPool\",\"applicationPoolAccount\":\"', parameters('sharePointFarmAccountUserName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"port\":80,\"hostHeader\":\"',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"databaseName\":\"',parameters('contentDatabaseName'),'\"},\"site\":{\"name\":\"spARM\",\"template\":\"',parameters('spSiteTemplateName'),'\",\"url\":\"http://',reference(variables('spIPAddressName')).dnsSettings.fqdn,'\",\"ownerAliasDomain\":\"',parameters('domainName'),'\",\"ownerAliasUserName\":\"',parameters('sharePointFarmAccountUserName'),'\",\"secondaryOwnerAliasDomain\":\"',parameters('domainName'),'\",\"secondaryOwnerAliasUserName\":\"',parameters('adminUserName'),'\"}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
+						"Configuration":"[concat('{\"roles\":[{\"type\":\"web\",\"properties\":{\"webApp\":{\"name\":\"spARM\",\"applicationPool\":\"spARM AppPool\",\"applicationPoolAccount\":\"', parameters('sharePointFarmAccountUserName'),'\",\"url\":\"http://',reference(variables('spWebIPAddressName')).dnsSettings.fqdn,'\",\"port\":80,\"hostHeader\":\"',reference(variables('spWebIPAddressName')).dnsSettings.fqdn,'\",\"databaseName\":\"',parameters('contentDatabaseName'),'\"},\"site\":{\"name\":\"spARM\",\"template\":\"',parameters('spSiteTemplateName'),'\",\"url\":\"http://',reference(variables('spWebIPAddressName')).dnsSettings.fqdn,'\",\"ownerAliasDomain\":\"',parameters('domainName'),'\",\"ownerAliasUserName\":\"',parameters('sharePointFarmAccountUserName'),'\",\"secondaryOwnerAliasDomain\":\"',parameters('domainName'),'\",\"secondaryOwnerAliasUserName\":\"',parameters('adminUserName'),'\"}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
+					}
+				},
+				"protectedSettings": {
+					"Items": {
+						"AdminPassword": "[parameters('adminPassword')]",
+						"SharePointSetupUserAccountPassword": "[parameters('sharePointSetupUserAccountPassword')]",
+						"SharePointFarmAccountPassword": "[parameters('sharePointFarmAccountPassword')]",
+						"SharePointFarmPassphrasePassword": "[parameters('sharePointFarmPassphrasePassword')]",
+						"SqlServerServiceAccountPassword": "[parameters('sqlServerServiceAccountPassword')]"
+					}
+				}
+			}
+		},
+		{
+			"type": "Microsoft.Compute/virtualMachines/extensions",
+			"name": "[concat(variables('spWebVMName'),'1/ConfigureSPWebServer')]",
+			"apiVersion": "2014-12-01-preview",
+			"location": "[parameters('deploymentLocation')]",
+			"dependsOn": [
+				"[concat('Microsoft.Compute/virtualMachines/', variables('spWebVMName'),'1')]",
+				"[concat('Microsoft.Compute/virtualMachines/',variables('spWebVMName'),'0/extensions/ConfigureSPWebServer')]"
+			],
+			"properties": {
+				"publisher": "Microsoft.Powershell",
+				"type": "DSC",
+				"typeHandlerVersion": "1.7",
+				"settings": {
+					"ModulesUrl": "[variables('spModulesURL')]",
+					"ConfigurationFunction": "[variables('spConfigurationFunction')]",
+					"Properties": {
+						"DomainName": "[parameters('domainName')]",
+						"AdminCreds":{
+							"UserName": "[parameters('adminUserName')]",
+							"Password": "PrivateSettingsRef:AdminPassword"
+						},
+						"SharePointSetupUserAccountcreds":{
+							"UserName": "[parameters('sharePointSetupUserAccountUserName')]",
+							"Password": "PrivateSettingsRef:SharePointSetupUserAccountPassword"
+						},
+						"SharePointFarmAccountcreds":{
+							"UserName": "[parameters('sharePointFarmAccountUserName')]",
+							"Password": "PrivateSettingsRef:SharePointFarmAccountPassword"
+						},
+						"SharePointFarmPassphrasecreds":{
+							"UserName": "ignore",
+							"Password": "PrivateSettingsRef:SharePointFarmPassphrasePassword"
+						},
+						"SQLServiceCreds":{
+							"UserName": "[parameters('sqlServerServiceAccountUserName')]",
+							"Password": "PrivateSettingsRef:SqlServerServiceAccountPassword"
+						},
+						"DatabaseName":"[parameters('configDatabaseName')]",
+						"AdministrationContentDatabaseName":"[parameters('administrationContentDatabaseName')]",
+						"SqlAlwaysOnAvailabilityGroupName":"[variables('sqlAOAGName')]",
+						"PrimaryReplica":"[concat(variables('sqlVMName'),'1')]",
+						"SecondaryReplica":"[concat(variables('sqlVMName'),'0')]",
+						"databaseNames":null,
+						"DatabaseServer":"[concat(variables('sqlVMName'),'1.',parameters('domainName'))]",
+						"Configuration":"[concat('{\"roles\":[{\"type\":\"web\",\"properties\":{\"webApp\":{\"name\":\"spARM\",\"applicationPool\":\"spARM AppPool\",\"applicationPoolAccount\":\"', parameters('sharePointFarmAccountUserName'),'\",\"url\":\"http://',reference(variables('spWebIPAddressName')).dnsSettings.fqdn,'\",\"port\":80,\"hostHeader\":\"',reference(variables('spWebIPAddressName')).dnsSettings.fqdn,'\",\"databaseName\":\"',parameters('contentDatabaseName'),'\"},\"site\":{\"name\":\"spARM\",\"template\":\"',parameters('spSiteTemplateName'),'\",\"url\":\"http://',reference(variables('spWebIPAddressName')).dnsSettings.fqdn,'\",\"ownerAliasDomain\":\"',parameters('domainName'),'\",\"ownerAliasUserName\":\"',parameters('sharePointFarmAccountUserName'),'\",\"secondaryOwnerAliasDomain\":\"',parameters('domainName'),'\",\"secondaryOwnerAliasUserName\":\"',parameters('adminUserName'),'\"}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
 					}
 				},
 				"protectedSettings": {
