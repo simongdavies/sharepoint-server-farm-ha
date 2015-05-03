@@ -655,7 +655,7 @@
 							"port": "[variables('spWebProbePort')]",
 							"intervalInSeconds": "15",
 							"numberOfProbes": "5",
-							"requestPath":"/iistart.htm"
+							"requestPath":"/iisstart.htm"
 						}
 					}
 				]
@@ -1671,7 +1671,7 @@
 						"PrimaryReplica":"[concat(variables('sqlVMName'),'1')]",
 						"SecondaryReplica":"[concat(variables('sqlVMName'),'0')]",
 						"databaseNames":null,
-						"Configuration":"[concat('{\"roles\":[{\"type\":\"application\",\"properties\":{\"fqdn\":\"',reference(variables('spCAIPAddressName')).dnsSettings.fqdn,'\",\"port\":',variables('spCentralAdminPort'),'}}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
+						"Configuration":"[concat('{\"roles\":[{\"type\":\"application\",\"properties\":{\"fqdn\":\"',reference(variables('spCAIPAddressName')).dnsSettings.fqdn,'\",\"port\":',variables('spCentralAdminPort'),'}}],\"configureForHa\":\"True\",\"loadBalancedSetProbePort\":',variables('spWebProbePort'),'}')]"
 					}
 				},
 				"protectedSettings": {
