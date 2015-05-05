@@ -22,7 +22,7 @@
 			},
 			"defaultValue":"Premium_LRS"
 		},
-		"deploymentLocation": {
+		"location": {
 			"type": "string",
 			"allowedValues": [
 				"West US",
@@ -348,7 +348,7 @@
 			},
 			"defaultValue":3389
 		},
-		"AssetLocation":{
+		"assetLocation":{
 			"type":"string",
 			"metadata": {
 				"Description": "The location of resources such as templates and DSC modules that the script is dependent"
@@ -535,19 +535,19 @@
 				}
 			}
 		],
-		"vnetwithDNSTemplateUri":"[concat(parameters('AssetLocation'),'/vnet-with-dns-server.json')]",
-		"nicTemplateUri": "[concat(parameters('AssetLocation'),'/nic.json')]",
-		"adPDCModulesURL":"[concat(parameters('AssetLocation'),'/CreateADPDC.ps1.zip')]",
+		"vnetwithDNSTemplateUri":"[concat(parameters('assetLocation'),'/vnet-with-dns-server.json')]",
+		"nicTemplateUri": "[concat(parameters('assetLocation'),'/nic.json')]",
+		"adPDCModulesURL":"[concat(parameters('assetLocation'),'/CreateADPDC.ps1.zip')]",
 		"adPDCConfigurationFunction":"CreateADPDC.ps1\\CreateADPDC",
-		"adBDCModulesURL":"[concat(parameters('AssetLocation'),'/CreateADBDC.ps1.zip')]",
+		"adBDCModulesURL":"[concat(parameters('assetLocation'),'/CreateADBDC.ps1.zip')]",
 		"adBDCConfigurationFunction":"CreateADBDC.ps1\\CreateADBDC",
-		"fswModulesURL":"[concat(parameters('AssetLocation'),'/CreateFileShareWitness.ps1.zip')]",
+		"fswModulesURL":"[concat(parameters('assetLocation'),'/CreateFileShareWitness.ps1.zip')]",
 		"fswConfigurationFunction":"CreateFileShareWitness.ps1\\CreateFileShareWitness",
-		"sqlAOPrepareModulesURL":"[concat(parameters('AssetLocation'),'/PrepareAlwaysOnSqlServer.ps1.zip')]",
+		"sqlAOPrepareModulesURL":"[concat(parameters('assetLocation'),'/PrepareAlwaysOnSqlServer.ps1.zip')]",
 		"sqlAOPrepareConfigurationFunction":"PrepareAlwaysOnSqlServer.ps1\\PrepareAlwaysOnSqlServer",
-		"createClusterModulesURL":"[concat(parameters('AssetLocation'),'/CreateFailoverCluster.ps1.zip')]",
+		"createClusterModulesURL":"[concat(parameters('assetLocation'),'/CreateFailoverCluster.ps1.zip')]",
 		"createClusterConfigurationFunction":"CreateFailoverCluster.ps1\\CreateFailoverCluster",
-		"spModulesURL":"[concat(parameters('AssetLocation'),'/ConfigureSharePointServerHA.ps1.zip')]",
+		"spModulesURL":"[concat(parameters('assetLocation'),'/ConfigureSharePointServerHA.ps1.zip')]",
 		"spConfigurationFunction":"ConfigureSharePointServerHA.ps1\\ConfigureSharePointServerHA"
 
 	},
@@ -556,7 +556,7 @@
 		  "type": "Microsoft.Storage/storageAccounts",
 		  "name": "[parameters('newStorageAccountName')]",
 		  "apiVersion": "2015-05-01-preview",
-		  "location": "[parameters('deploymentLocation')]",
+		  "location": "[parameters('location')]",
 		  "properties": {
 			"accountType": "[parameters('storageAccountType')]"
 		  }
@@ -565,7 +565,7 @@
 			"apiVersion": "2015-05-01-preview",
 			"type": "Microsoft.Network/publicIPAddresses",
 			"name": "[variables('rdpIPAddressName')]",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"properties": {
 				"publicIPAllocationMethod": "[variables('publicIPAddressType')]",
 				"dnsSettings": {
@@ -577,7 +577,7 @@
 			"apiVersion": "2015-05-01-preview",
 			"type": "Microsoft.Network/publicIPAddresses",
 			"name": "[variables('spWebIPAddressName')]",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"properties": {
 				"publicIPAllocationMethod": "[variables('publicIPAddressType')]",
 				"dnsSettings": {
@@ -589,7 +589,7 @@
 			"apiVersion": "2015-05-01-preview",
 			"type": "Microsoft.Network/publicIPAddresses",
 			"name": "[variables('spCAIPAddressName')]",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"properties": {
 				"publicIPAllocationMethod": "[variables('publicIPAddressType')]",
 				"dnsSettings": {
@@ -601,13 +601,13 @@
 			"type": "Microsoft.Compute/availabilitySets",
 			"name": "[variables('adAvailabilitySetName')]",
 			"apiVersion": "2015-05-01-preview",
-			"location": "[parameters('deploymentLocation')]"
+			"location": "[parameters('location')]"
 		},
 		{
 			"type": "Microsoft.Compute/availabilitySets",
 			"name": "[variables('sqlAvailabilitySetName')]",
 			"apiVersion": "2015-05-01-preview",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"properties": {
 				"platformFaultDomainCount": "3",
 				"platformUpdateDomainCount": "3"
@@ -617,18 +617,18 @@
 			"type": "Microsoft.Compute/availabilitySets",
 			"name": "[variables('spWebAvailabilitySetName')]",
 			"apiVersion": "2015-05-01-preview",
-			"location": "[parameters('deploymentLocation')]"
+			"location": "[parameters('location')]"
 		},
 		{
 			"type": "Microsoft.Compute/availabilitySets",
 			"name": "[variables('spAppAvailabilitySetName')]",
 			"apiVersion": "2015-05-01-preview",
-			"location": "[parameters('deploymentLocation')]"
+			"location": "[parameters('location')]"
 		},
 		{
 			"name": "[parameters('virtualNetworkName')]",
 			"type": "Microsoft.Network/virtualNetworks",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"apiVersion": "2015-05-01-preview",
 			"properties": {
 				"addressSpace": {
@@ -643,7 +643,7 @@
 			"apiVersion": "2015-05-01-preview",
 			"name": "[variables('rdplbName')]",
 			"type": "Microsoft.Network/loadBalancers",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn": [
 				"[resourceId('Microsoft.Network/publicIPAddresses',variables('rdpIPAddressName'))]"
 			],
@@ -684,7 +684,7 @@
 			"apiVersion": "2015-05-01-preview",
 			"name": "[variables('spWebLBName')]",
 			"type": "Microsoft.Network/loadBalancers",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn": [
 				"[resourceId('Microsoft.Network/publicIPAddresses',variables('spWebIPAddressName'))]"
 			],
@@ -742,7 +742,7 @@
 			"apiVersion": "2015-05-01-preview",
 			"name": "[variables('sqllbName')]",
 			"type": "Microsoft.Network/loadBalancers",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn": [
 				"[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]"
 			],
@@ -798,7 +798,7 @@
 			"apiVersion": "2015-05-01-preview",
 			"name": "[variables('spCAlbName')]",
 			"type": "Microsoft.Network/loadBalancers",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn": [
 				"[resourceId('Microsoft.Network/publicIPAddresses',variables('spCAIPAddressName'))]"
 			],
@@ -838,7 +838,7 @@
 		{
 			"name": "[variables('adPDCNicName')]",
 			"type": "Microsoft.Network/networkInterfaces",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn": [
 				"[parameters('virtualNetworkName')]",
 				"[concat('Microsoft.Network/loadBalancers/',variables('rdpLBName'))]"
@@ -872,7 +872,7 @@
 		{
 			"name": "[variables('adBDCNicName')]",
 			"type": "Microsoft.Network/networkInterfaces",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn": [
 				"[concat('Microsoft.Network/loadBalancers/',variables('rdpLBName'))]"
 			],
@@ -895,7 +895,7 @@
 		{
 			"name": "[concat(variables('sqlVMName'), copyindex(),'-nic')]",
 			"type": "Microsoft.Network/networkInterfaces",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"apiVersion": "2015-05-01-preview",
 			"copy": {
 				"name": "sqlnicLoop",
@@ -927,7 +927,7 @@
 		{
 			"name": "[concat(variables('spWebVMName'), copyindex(),'-nic')]",
 			"type": "Microsoft.Network/networkInterfaces",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"apiVersion": "2015-05-01-preview",
 			"copy": {
 				"name": "spWebnicLoop",
@@ -959,7 +959,7 @@
 		{
 			"name": "[concat(variables('spAppVMName'),'0-nic')]",
 			"type": "Microsoft.Network/networkInterfaces",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"apiVersion": "2015-05-01-preview",
 			"dependsOn": [
 				"[parameters('virtualNetworkName')]",
@@ -992,7 +992,7 @@
 		{
 			"name": "[concat(variables('spAppVMName'),'1-nic')]",
 			"type": "Microsoft.Network/networkInterfaces",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"apiVersion": "2015-05-01-preview",
 			"dependsOn": [
 				"[parameters('virtualNetworkName')]"
@@ -1014,7 +1014,7 @@
 		{
 			"name": "[variables('sqlwNicName')]",
 			"type": "Microsoft.Network/networkInterfaces",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn": [
 				"[concat('Microsoft.Network/loadBalancers/',variables('sqlLBName'))]"
 			],
@@ -1037,7 +1037,7 @@
 			"apiVersion": "2015-05-01-preview",
 			"type": "Microsoft.Compute/virtualMachines",
 			"name": "[variables('adPDCVMName')]",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn": [
 				"[resourceId('Microsoft.Storage/storageAccounts',parameters('newStorageAccountName'))]",
 				"[resourceId('Microsoft.Network/networkInterfaces',variables('adPDCNicName'))]",
@@ -1097,7 +1097,7 @@
 					"type": "Microsoft.Compute/virtualMachines/extensions",
 					"name": "[concat(variables('adPDCVMName'),'/InstallDomainController')]",
 					"apiVersion": "2015-05-01-preview",
-					"location": "[parameters('deploymentLocation')]",
+					"location": "[parameters('location')]",
 					"dependsOn":[
 						"[resourceId('Microsoft.Compute/virtualMachines', variables('adPDCVMName'))]"
 					],
@@ -1139,7 +1139,7 @@
 				  "contentVersion": "1.0.0.0"
 				},
 				"parameters": {
-					"deploymentLocation": {"value":"[parameters('deploymentLocation')]"},
+					"location": {"value":"[parameters('location')]"},
 					"virtualNetworkName": {"value":"[parameters('virtualNetworkName')]"},
 					"virtualNetworkAddressRange": {"value":"[parameters('virtualNetworkAddressRange')]"},
 					"subnets": {"value":"[variables('subnets')]"},
@@ -1151,7 +1151,7 @@
 			"apiVersion": "2015-05-01-preview",
 			"type": "Microsoft.Compute/virtualMachines",
 			"name": "[variables('adBDCVMName')]",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn": [
 				"[resourceId('Microsoft.Storage/storageAccounts',parameters('newStorageAccountName'))]",
 				"[resourceId('Microsoft.Network/networkInterfaces',variables('adBDCNicName'))]",
@@ -1211,7 +1211,7 @@
 			"type": "Microsoft.Compute/virtualMachines/extensions",
 			"name": "[concat(variables('adBDCVMName'),'/CreateBDC')]",
 			"apiVersion": "2015-05-01-preview",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn":[
 				"[concat('Microsoft.Compute/virtualMachines/', variables('adBDCVMName'))]"
 			],
@@ -1241,7 +1241,7 @@
 			"apiVersion": "2015-05-01-preview",
 			"type": "Microsoft.Compute/virtualMachines",
 			"name": "[concat(variables('sqlVMName'), copyindex())]",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"copy": {
 				"name": "sqlvirtualMachineLoop",
 				"count": "[variables('noOfSqlVMs')]"
@@ -1315,7 +1315,7 @@
 			"apiVersion": "2015-05-01-preview",
 			"type": "Microsoft.Compute/virtualMachines",
 			"name": "[variables('sqlwVMName')]",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn": [
 				"[resourceId('Microsoft.Storage/storageAccounts',parameters('newStorageAccountName'))]",
 				"[resourceId('Microsoft.Network/networkInterfaces',variables('sqlwNicName'))]",
@@ -1385,7 +1385,7 @@
 				  "contentVersion": "1.0.0.0"
 				},
 				"parameters": {
-					"deploymentLocation": {"value":"[parameters('deploymentLocation')]"},
+					"location": {"value":"[parameters('location')]"},
 					"virtualNetworkName": {"value":"[parameters('virtualNetworkName')]"},
 					"virtualNetworkAddressRange": {"value":"[parameters('virtualNetworkAddressRange')]"},
 					"subnets": {"value":"[variables('subnets')]"},
@@ -1408,7 +1408,7 @@
 				},
 				"parameters": {
 					"location": {
-						"value": "[parameters('deploymentLocation')]"
+						"value": "[parameters('location')]"
 					},
 					"nicName": {
 						"value": "[variables('sqlwNicName')]"
@@ -1454,7 +1454,7 @@
 				},
 				"parameters": {
 					"location": {
-						"value": "[parameters('deploymentLocation')]"
+						"value": "[parameters('location')]"
 					},
 					"nicName": {
 						"value": "[concat(variables('sqlVMName'), copyindex(),'-nic')]"
@@ -1490,7 +1490,7 @@
 			"type": "Microsoft.Compute/virtualMachines/extensions",
 			"name": "[concat(variables('sqlwVMName'),'/CreateFileShareWitness')]",
 			"apiVersion": "2015-05-01-preview",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn":[
 				"[concat('Microsoft.Compute/virtualMachines/', variables('sqlwVMName'))]",
 				"Microsoft.Resources/deployments/UpdateSQLWNic"
@@ -1523,7 +1523,7 @@
 			"type": "Microsoft.Compute/virtualMachines/extensions",
 			"name": "[concat(variables('sqlVMName'),'0/sqlAOPrepare')]",
 			"apiVersion": "2015-05-01-preview",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn":[
 				"[concat('Microsoft.Compute/virtualMachines/', variables('sqlVMName'),'0')]",
 				"[concat('Microsoft.Compute/virtualMachines/',variables('sqlwVMName'),'/extensions/CreateFileShareWitness')]",
@@ -1566,7 +1566,7 @@
 			"type": "Microsoft.Compute/virtualMachines/extensions",
 			"name": "[concat(variables('sqlVMName'),'1/CreateCluster')]",
 			"apiVersion": "2015-05-01-preview",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn":[
 				"[concat('Microsoft.Compute/virtualMachines/', variables('sqlVMName'),'1')]",
 				"[concat('Microsoft.Compute/virtualMachines/',variables('sqlVMName'),'0/extensions/sqlAOPrepare')]",
@@ -1621,7 +1621,7 @@
 			"apiVersion": "2015-05-01-preview",
 			"type": "Microsoft.Compute/virtualMachines",
 			"name": "[concat(variables('spWebVMName'), copyindex())]",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"copy": {
 				"name": "spWebVMLoop",
 				"count": "[variables('noOfspWebVMs')]"
@@ -1685,7 +1685,7 @@
 			"apiVersion": "2015-05-01-preview",
 			"type": "Microsoft.Compute/virtualMachines",
 			"name": "[concat(variables('spAppVMName'), copyindex())]",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"copy": {
 				"name": "spAppVMLoop",
 				"count": "[variables('noOfspAppVMs')]"
@@ -1749,7 +1749,7 @@
 			"type": "Microsoft.Compute/virtualMachines/extensions",
 			"name": "[concat(variables('spAppVMName'),'0/ConfigureSPAppServer')]",
 			"apiVersion": "2015-05-01-preview",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn": [
 				"[concat('Microsoft.Compute/virtualMachines/', variables('spAppVMName'),'0')]",
 				"[concat('Microsoft.Compute/virtualMachines/',variables('sqlVMName'),'1/extensions/CreateCluster')]"
@@ -1808,7 +1808,7 @@
 			"type": "Microsoft.Compute/virtualMachines/extensions",
 			"name": "[concat(variables('spAppVMName'),'1/ConfigureSPAppServer')]",
 			"apiVersion": "2015-05-01-preview",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn": [
 				"[concat('Microsoft.Compute/virtualMachines/', variables('spAppVMName'),'1')]",
 				"[concat('Microsoft.Compute/virtualMachines/', variables('spAppVMName'),'0/extensions/ConfigureSPAppServer')]"
@@ -1867,7 +1867,7 @@
 			"type": "Microsoft.Compute/virtualMachines/extensions",
 			"name": "[concat(variables('spWebVMName'),'0/ConfigureSPWebServer')]",
 			"apiVersion": "2015-05-01-preview",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn": [
 				"[concat('Microsoft.Compute/virtualMachines/', variables('spWebVMName'),'0')]",
 				"[concat('Microsoft.Compute/virtualMachines/', variables('spAppVMName'),'0/extensions/ConfigureSPAppServer')]"
@@ -1926,7 +1926,7 @@
 			"type": "Microsoft.Compute/virtualMachines/extensions",
 			"name": "[concat(variables('spWebVMName'),'1/ConfigureSPWebServer')]",
 			"apiVersion": "2015-05-01-preview",
-			"location": "[parameters('deploymentLocation')]",
+			"location": "[parameters('location')]",
 			"dependsOn": [
 				"[concat('Microsoft.Compute/virtualMachines/', variables('spWebVMName'),'1')]",
 				"[concat('Microsoft.Compute/virtualMachines/',variables('spWebVMName'),'0/extensions/ConfigureSPWebServer')]"

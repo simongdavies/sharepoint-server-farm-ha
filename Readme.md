@@ -27,7 +27,7 @@ This template will create a SQL Server 2014 Always On Availability Group using t
 
 Click the button below to deploy
 
-<a href="https://azuredeploy.net" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Fazure-quickstart-templates%2Fmaster%2Fsharepoint-server-farm-ha%2Fazuredeploy.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
 
@@ -36,8 +36,8 @@ The template requires the following parameters:
 | Name   | Description    |
 |:--- |:---|
 | newStorageAccountName    | Name of the storage account to create    |
-| storageAccountType      | Type of the storage account <br> <ul>**Allowed Values**<li>Standard_LRS **(default)**</li><li>Standard_GRS</li><li>"Standard_ZRS"</li></ul> |
-| deploymentLocation  | Location where to deploy the resource <br><ul>**Allowed Values**<li>West US</li><li>East US</li><li>**West Europe (default)**</li><li>East Asia</li><li>Southeast Asia</li>|
+| storageAccountType      | Type of the storage account <br> <ul>**Allowed Values**<li>Standard_LRS</li><li>Standard_GRS</li><li>Standard_RAGRS</li><li>Standard_ZRS</li><li>Premium_LRS **(default)**</li></ul> |
+| location  | Location where to deploy the resource <br><ul>**Allowed Values**<li>West US</li><li>East US</li><li>**West Europe (default)**</li><li>East Asia</li><li>Southeast Asia</li>|
 | virtualNetworkName | Name of the Virtual Network |
 | virtualNetworkAddressRange | Virtual Network Address Range <br> <ul><li>10.0.0.0/16 **(default)**</li></ul> |
 | staticSubnet | Address prefix for subnet that Static IP addresses are taken from <br> <ul><li>10.0.0.0/24 **(default)**</li></ul> |
@@ -47,26 +47,33 @@ The template requires the following parameters:
 | adPDCNicIPAddress | The IP address of the new AD PDC  <br> <ul><li>**10.0.0.4 (default)**</li></ul> |
 | adBDCNicIPAddress | The IP address of the new AD BDC  <br> <ul><li>**10.0.0.5 (default)**</li></ul> |
 | sqlLBNicIPAddress | The IP address of the ILB used for SQL Listener  <br> <ul><li>**10.0.0.6 (default)**</li></ul> |
-| publicIPAddressType | Type of Public IP Address <br> <ul>**Allowed Values**<li>Dynamic **(default)**</li><li>Static</li></ul>|
 | adVMPrefix | The Prefix of the AD VM names |
 | sqlVMPrefix | The Prefix of the SQL VM names |
 | spVMPrefix | The Prefix of the SharePoint VM names |
 | adminUsername | Admin username for the VM **This will also be used as the domain admin user name**|
 | adminPassword | Admin password for the VM **This will also be used as the domain admin password and the SafeMode password ** |
-| adVMSize | Size of the AD VMs <br> <ul>**Allowed Values**<li>Standard_A0 </li><li>Standard_A1**(default)**</li><li>Standard_A2</li><li>Standard_A3</li><li>Standard_A4</li></ul>|
-| sqlVMSize | Size of the SQL VMs<br> <ul>**Allowed Values**<li>Standard_A0 </li><li>Standard_A1**(default)**</li><li>Standard_A2</li><li>Standard_A3</li><li>Standard_A4</li></ul>|
-| witnessVMSize | Size of the Witness VM<br> <ul>**Allowed Values**<li>Standard_A0 </li><li>Standard_A1**(default)**</li><li>Standard_A2</li><li>Standard_A3</li><li>Standard_A4</li></ul>|
-| spVMSize | Size of the SharePoint VMs<br> <ul>**Allowed Values**<li>Standard_A0 </li><li>Standard_A1**(default)**</li><li>Standard_A2</li><li>Standard_A3</li><li>Standard_A4</li></ul>|
-| adImageName | Name of image to use for the AD VMs <br> <ul><li>a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-201503.01-en.us-127GB.vhd **(default)**</li></ul>|
-| sqlImageName | Name of image to use for the SQL VMs <br> <ul><li>fb83b3509582419d99629ce476bcb5c8__SQL-Server-2014-RTM-12.0.2048.0-Ent-ENU-Win2012R2-cy15su04 **(default)**</li></ul>|
-| witnessImageName | Name of image to use for the witness VM <br> <ul><li>a699494373c04fc0bc8f2bb1389d6106__Windows-Server-2012-R2-201503.01-en.us-127GB.vhd **(default)**</li></ul>|
-| spImageName | Name of image to use for the SharePoint VMs <br> <ul><li>c6e0f177abd8496e934234bd27f46c5d__SharePoint-2013-Trial-1-20-2015**(default)**</li></ul>|
-| vmContainerName | The container name in the storage account where VM disks are stored|
+| adVMSize | Size of the AD VM <br> <ul>**Allowed Values**<li>Standard_D1 </li><li>Standard_DS1 **(default)**</li><li>Standard_D2</li><li>Standard_DS2</li><li>Standard_D3</li><li>Standard_DS3</li><li>Standard_D4</li><li>Standard_DS11</li><li>Standard_D11</li><li>Standard_DS11</li><li>Standard_D12</li><li>Standard_DS12</li><li>Standard_D13</li><li>Standard_DS13</li><li>Standard_D14</li><li>Standard_DS14</li></ul>|
+| sqlVMSize | Size of the SQL VM <br> <ul>**Allowed Values**<li>Standard_D1 </li><li>Standard_DS1</li><li>Standard_D2</li><li>Standard_DS2</li><li>Standard_D3</li><li>Standard_DS3 **(default)**</li><li>Standard_D4</li><li>Standard_DS11</li><li>Standard_D11</li><li>Standard_DS11</li><li>Standard_D12</li><li>Standard_DS12</li><li>Standard_D13</li><li>Standard_DS13</li><li>Standard_D14</li><li>Standard_DS14</li></ul>|
+| witnessVMSize | Size of the SQL VM <br> <ul>**Allowed Values**<li>Standard_D1 </li><li>Standard_DS1 **(default)**</li><li>Standard_D2</li><li>Standard_DS2</li><li>Standard_D3</li><li>Standard_DS3</li><li>Standard_D4</li><li>Standard_DS11</li><li>Standard_D11</li><li>Standard_DS11</li><li>Standard_D12</li><li>Standard_DS12</li><li>Standard_D13</li><li>Standard_DS13</li><li>Standard_D14</li><li>Standard_DS14</li></ul>|
+| spVMSize | Size of the SharePoint VM <br> <ul>**Allowed Values**<li>Standard_D1 </li><li>Standard_DS1</li><li>Standard_D2</li><li>Standard_DS2 **(default)**</li><li>Standard_D3</li><li>Standard_DS3</li><li>Standard_D4</li><li>Standard_DS11</li><li>Standard_D11</li><li>Standard_DS11</li><li>Standard_D12</li><li>Standard_DS12</li><li>Standard_D13</li><li>Standard_DS13</li><li>Standard_D14</li><li>Standard_DS14</li></ul>|
+| adImagePublisher| The name of the pulisher of the AD Image |
+| adImageOffer| The Offer Name for the Image used by AD|
+| adImageSKU| The Image SKU for the AD Image|
+| sqlImagePublisher| The name of the pulisher of the SQL Image |
+| sqlImageOffer| The Offer Name for the Image used by SQL|
+| sqlImageSKU| The Image SKU for the SQL Image|
+| witnessImagePublisher| The name of the pulisher of the SQL Image |
+| witnessImageOffer| The Offer Name for the Image used by SQL|
+| witnessImageSKU| The Image SKU for the SQL Image|
+| spImagePublisher| The name of the pulisher of the SharePoint Image |
+| spImageOffer| The Offer Name for the Image used by SharePoint|
+| spImageSKU| The Image SKU for the SharePoint Image|| vmContainerName | The container name in the storage account where VM disks are stored|
 | domainName | The FQDN of the AD Domain created |
 | dnsPrefix | The DNS prefix for the public IP address used by the Load Balancer for SharePoint Web site access |
 | rdpDNSPrefix | The DNS prefix for the public IP address used by the Load Balancer for RDP Access|
+| spCentralAdminDNSPrefix | The DNS prefix for the public IP address used by the Load Balancer for SharePoint Central Admin Access|
 | rdpPort | The public RDP port for first VM |
-| AssetLocation | The location of resources such as templates and DSC modules that the script is dependent <br> <ul><li> **https://raw.githubusercontent.com/azurermtemplates/azurermtemplates/master/sharepoint-server-farm-ha (default)**</li></ul>
+| assetLocation | The location of resources such as templates and DSC modules that the script is dependent <br> <ul><li> **https://raw.githubusercontent.com/azurermtemplates/azurermtemplates/master/sharepoint-server-farm-ha (default)**</li></ul>
 | sqlServerServiceAccountUserName | The SQL Server Service account name |
 | sqlServerServiceAccountPassword | The SQL Server Service account password |
 | sharePointSetupUserAccountUserName | The Sharepoint Setup account name|
