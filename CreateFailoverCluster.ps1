@@ -82,7 +82,7 @@ configuration CreateFailoverCluster
              RetryCount = $RetryCount
         }
 
-        XDisk DataDisk
+        cDisk DataDisk
         {
             DiskNumber = 2
             DriveLetter = "F"
@@ -95,7 +95,7 @@ configuration CreateFailoverCluster
              RetryCount = $RetryCount
         }
 
-        xDisk LogDisk
+        cDisk LogDisk
         {
             DiskNumber = 3
             DriveLetter = "G"
