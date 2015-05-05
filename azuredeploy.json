@@ -1811,7 +1811,7 @@
 			"location": "[parameters('deploymentLocation')]",
 			"dependsOn": [
 				"[concat('Microsoft.Compute/virtualMachines/', variables('spAppVMName'),'1')]",
-				"[concat('Microsoft.Compute/virtualMachines/',variables('sqlVMName'),'1/extensions/CreateCluster')]"
+				"[concat('Microsoft.Compute/virtualMachines/', variables('spAppVMName'),'0/extensions/ConfigureSPAppServer')]"
 			],
 			"properties": {
 				"publisher": "Microsoft.Powershell",
@@ -1870,7 +1870,7 @@
 			"location": "[parameters('deploymentLocation')]",
 			"dependsOn": [
 				"[concat('Microsoft.Compute/virtualMachines/', variables('spWebVMName'),'0')]",
-				"[concat('Microsoft.Compute/virtualMachines/',variables('spAppVMName'),'1/extensions/ConfigureSPAppServer')]"
+				"[concat('Microsoft.Compute/virtualMachines/', variables('spAppVMName'),'0/extensions/ConfigureSPAppServer')]"
 			],
 			"properties": {
 				"publisher": "Microsoft.Powershell",

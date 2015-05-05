@@ -4,18 +4,26 @@ This template will create a SQL Server 2014 Always On Availability Group using t
 
 +	A Virtual Network
 +	A Storage Account
-+	Two external and one internal load balancer
-+	A NAT Rule to allow RDP to one VM which can be used as a jumpbox, a load balancer rule for ILB for a SQL Listener and a load balancer rule for HTTP traffic on port 80 for SharePoint
-+ 	Two public IP addresses
++	Three external and one internal load balancer
++	A NAT Rule to allow RDP to one VM which can be used as a jumpbox, a load balancer rule for ILB for a SQL Listener, a load balancer rule for HTTP traffic on port 80 for SharePoint and a NAT rule for Sharepoint Central Admin access
++ 	Three public IP addresses, one for RDP access, one for the SharePoint site and one for SharePoint Central Admin.
 +	Two VMs as Domain Controllers for a new Forest and Domain
-+	Three VMs in a Windows Server Cluster, two VMs run SQL Server 2014 with a common availability group and the third is a File Share Witness for the Cluster
++	Two VMs in a Windows Server Cluster running SQL Server 2014 with an availability group, an additional VM acts as a File Share Witness for the Cluster
 +	Two SharePoint App Servers
 +	Two SharePoint Web Servers
-+	Four Availability Sets one for the AD VMs, one for the SQL and Witness VMs, one for the SharePoint App Servers and one for the SharePoint Web Servers the second Availability Set is configured with three Update Domains and three Fault Domains.
++	Four Availability Sets one for the AD VMs, one for the SQL and Witness VMs, one for the SharePoint App Servers and one for the SharePoint Web Servers the SQL\Witness Availability Set is configured with three Update Domains and three Fault Domains to ensure that quorum can always be attained.
 
-There are a number of issues\workarounds in this template and the associated DSC Script:
+#Notes
 
-1. This template is entirely serial due to some issues between the platform agent and the DSC extension which cause problems when multiple VM and\or extension resources are deployed concurrently, this will be fixed in the future
++	The default settings for this template are to deploy using premium storage. In addition they also require that you have at least 19 cores of free quota to deploy.
+
++	This template creates an Always On Listener Sharepoint does not use it at present, SharePoint HA is configured as decribed at https://technet.microsoft.com/en-us/library/dd207314(v=office.14).aspx#Configure3, this will be changed in the future.
+
++	Public Endpoints are created for the SharePoint site that this template creates and for the Central Admin site, no permissions are given to any user for the SharePoint site created, these will need to be added from the Central Admin site.
+
+# Known Issues
+
++ This template has a lot of serial behaviour due to some issues between the platform agent and the DSC extension which cause problems when multiple VM and\or extension resources are deployed concurrently, this will be fixed in the future, as a result of this it can take to run, it will take even longer if premium storage is not used
 
 Click the button below to deploy
 
@@ -23,7 +31,7 @@ Click the button below to deploy
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
 
-Below are the parameters that the template expects
+The template requires the following parameters:
 
 | Name   | Description    |
 |:--- |:---|
@@ -70,6 +78,5 @@ Below are the parameters that the template expects
 | administrationContentDatabaseName | The Sharepoint Admin Site Database Name |
 | contentDatabaseName | The Sharepoint Content Database Name|
 | spSiteTemplateName | The Sharepoint Content Site Template Name |
-
 
 
