@@ -4,7 +4,7 @@ This template will create a SQL Server 2014 Always On Availability Group using t
 
 +	A Virtual Network
 +	A Storage Account
-+	Three external and one internal load balancer
++	Three external and one internal load balancers
 +	A NAT Rule to allow RDP to one VM which can be used as a jumpbox, a load balancer rule for ILB for a SQL Listener, a load balancer rule for HTTP traffic on port 80 for SharePoint and a NAT rule for Sharepoint Central Admin access
 + 	Three public IP addresses, one for RDP access, one for the SharePoint site and one for SharePoint Central Admin.
 +	Two VMs as Domain Controllers for a new Forest and Domain
@@ -23,7 +23,7 @@ This template will create a SQL Server 2014 Always On Availability Group using t
 
 # Known Issues
 
-+ This template has a lot of serial behaviour due to some issues between the platform agent and the DSC extension which cause problems when multiple VM and\or extension resources are deployed concurrently, this will be fixed in the future, as a result of this it can take to run, it will take even longer if premium storage is not used
++ This template has a lot of serial behaviour due to some issues between the platform agent and the DSC extension which cause problems when multiple VM and\or extension resources are deployed concurrently, this will be fixed in the future, as a result of this it can take a while to run (around 2 hours) it will take even longer if premium storage is not used
 
 Click the button below to deploy
 
