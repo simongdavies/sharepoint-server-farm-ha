@@ -45,7 +45,7 @@ configuration PrepareAlwaysOnSqlServer
              RetryCount = $RetryCount
         }
 
-        cDiskNoRestart DataDisk
+        xDisk DataDisk
         {
             DiskNumber = 2
             DriveLetter = "F"
@@ -58,7 +58,7 @@ configuration PrepareAlwaysOnSqlServer
              RetryCount = $RetryCount
         }
 
-        cDiskNoRestart LogDisk
+        xDisk LogDisk
         {
             DiskNumber = 3
             DriveLetter = "G"

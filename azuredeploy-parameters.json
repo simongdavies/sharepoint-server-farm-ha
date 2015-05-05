@@ -3,19 +3,22 @@
 	"contentVersion": "1.0.0.0",
 	"parameters": {
 		"newStorageAccountName": {
-			"value": "sdspha20"
+			"value": "sdspha34"
 		},
 		"dnsPrefix":{
-			"value":"sdspha20"
+			"value":"sdspha34"
 		},
 		"rdpDNSPrefix":{
-			"value":"sdsprdpha20"
+			"value":"sdsprdpha34"
+		},
+		"spCentralAdminDNSPrefix":{
+			"value":"sdspcaha34"
 		},
 		"AssetLocation" :{
 			"value":"https://raw.githubusercontent.com/simongdavies/sharepoint-server-farm-ha/master"
 		},
 		"deploymentLocation": {
-			"value":"East US"
+			"value":"West Europe"
 		},
 		"adminPassword":{
 			"value":"!!Passw0rd!!"
