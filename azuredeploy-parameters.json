@@ -1,5 +1,5 @@
 {
-	"$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json",
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
 	"contentVersion": "1.0.0.0",
 	"parameters": {
 		"newStorageAccountName": {
@@ -14,10 +14,10 @@
 		"spCentralAdminDNSPrefix":{
 			"value":"sdspcaha38"
 		},
-		"AssetLocation" :{
+		"assetLocation" :{
 			"value":"https://raw.githubusercontent.com/simongdavies/sharepoint-server-farm-ha/version1.9-and-parallel"
 		},
-		"deploymentLocation": {
+		"location": {
 			"value":"West Europe"
 		},
 		"adminPassword":{
