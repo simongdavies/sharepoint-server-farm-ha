@@ -2,17 +2,17 @@
 	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
 	"contentVersion": "1.0.0.0",
 	"parameters": {
-		"newStorageAccountName": {
-			"value": "sdspha38"
+		"newStorageAccountNamePrefix": {
+			"value": "sdspha39"
 		},
 		"dnsPrefix":{
-			"value":"sdspha38"
+			"value":"sdspha39"
 		},
 		"rdpDNSPrefix":{
-			"value":"sdsprdpha38"
+			"value":"sdsprdpha39"
 		},
 		"spCentralAdminDNSPrefix":{
-			"value":"sdspcaha38"
+			"value":"sdspcaha39"
 		},
 		"assetLocation" :{
 			"value":"https://raw.githubusercontent.com/simongdavies/sharepoint-server-farm-ha/version1.9-and-parallel"

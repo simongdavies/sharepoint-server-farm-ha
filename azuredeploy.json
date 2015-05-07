@@ -323,7 +323,6 @@
 		"spCANAT":"spCANAT",
 		"spWebLB":"spWeb",
 		"spCALB":"spCALB",
-		"SQLAOListener":"SQLAlwaysOnEndPointListener",
 		"SQLAOProbe":"SQLAlwaysOnEndPointProbe",
 		"staticSubnetName": "staticSubnet",
 		"sqlSubnetName": "sqlSubnet",
@@ -331,11 +330,9 @@
 		"spAppSubnetName": "spAppSubnet",
 		"spWebProbe":"spWebProbe",
 		"spWebProbePort":8088,
-		"adDataDiskSize":1000,
-		"sqlDataDiskSize":1000,
-		"sqlLogDiskSize":1000,
-		"spDataDiskSize":1000,
-		"witnessDataDiskSize":1000,
+		"windowsDiskSize":128,
+		"sqlDiskSize":1000,
+		"spDiskSize":128,
 		"rdpIPAddressName": "rdpIP",
 		"spWebIPAddressName": "spWebIP",
 		"spCAIPAddressName": "spCAIP",
@@ -343,30 +340,28 @@
 		"adAvailabilitySetName": "adAvailabiltySet",
 		"spWebAvailabilitySetName":"spWebAvailabiltySet",
 		"spAppAvailabilitySetName": "spAppAvailabiltySet",
-		"publicIPAddressType": "Dynamic",
 		"vmContainerName": "vhds",
 		"spCentralAdminPort":80,
 		"noOfSqlVMs":2,
-		"noOfspwebVMs":2,
-		"noOfspappVMs":2,
+		"noOfspRoleVMs":2,
 		"virtualNetworkName":"spfarmhaVNET",
 		"sqlLBName" : "sqlLoadBalancer",
 		"rdpLBName" : "rdpLoadBalancer",
 		"spWebLBName" : "spWebLoadBalancer",
 		"spCALBName" : "spCALoadBalancer",
-		"adVMPrefix":"dc",
-		"sqlVMPrefix":"sql",
-		"spVMPrefix":"sps",
+		"adPDCVMName":"ad-pdc",
+		"adBDCVMName":"ad-bdc",
+		"sqlVMName":"sql-",
+		"sqlwVMName":"sql-w",
+		"spwebVMName":"sps-web-",
+		"spappVMName":"sps-app-",
 		"rdpPort":3389,
-		"adImagePublisher":"MicrosoftWindowsServer",
-		"adImageOffer":"WindowsServer",
-		"adImageSKU":"2012-R2-Datacenter",
+		"windowsImagePublisher":"MicrosoftWindowsServer",
+		"windowsImageOffer":"WindowsServer",
+		"windowsImageSKU":"2012-R2-Datacenter",
 		"sqlImagePublisher":"MicrosoftSQLServer",
 		"sqlImageOffer":"SQL2014-WS2012R2",
 		"sqlImageSKU":"Enterprise",
-		"witnessImagePublisher":"MicrosoftWindowsServer",
-		"witnessImageOffer":"WindowsServer",
-		"witnessImageSKU":"2012-R2-Datacenter",
 		"spImagePublisher":"MicrosoftSharePoint",
 		"spImageOffer":"MicrosoftSharePointServer",
 		"spImageSKU": "2013",
@@ -375,12 +370,6 @@
 		"sqlAOListenerName":"[concat(parameters('dnsPrefix'),'ag-listener')]",
 		"sharePath":"[concat(parameters('dnsPrefix'),'-fsw')]",
 		"clusterName":"[concat(parameters('dnsPrefix'),'-fc')]",
-		"adPDCVMName":"[concat(variables('adVMPrefix'),'-pdc')]",
-		"adBDCVMName":"[concat(variables('adVMPrefix'),'-bdc')]",
-		"sqlVMName":"[concat(variables('sqlVMPrefix'),'-')]",
-		"sqlwVMName":"[concat(variables('sqlVMPrefix'),'-w')]",
-		"spwebVMName":"[concat(variables('spVMPrefix'),'-web-')]",
-		"spappVMName":"[concat(variables('spVMPrefix'),'-app-')]",
 		"adPDCNicName": "[concat(variables('adPDCVMName'),'-nic')]",
 		"adBDCNicName": "[concat(variables('adBDCVMName'),'-nic')]",
 		"sqlwNicName": "[concat(variables('sqlwVMName'),'-nic')]",
@@ -452,7 +441,7 @@
 	"resources": [
 		{
 			"type": "Microsoft.Storage/storageAccounts",
-			"name": "[concat(parameters('newStorageAccountName'), copyindex())]",
+			"name": "[concat(parameters('newStorageAccountNamePrefix'), copyindex())]",
 			"apiVersion": "2015-05-01-preview",
 			"location": "[parameters('location')]",
 			"copy": {
@@ -469,7 +458,7 @@
 			"name": "[variables('rdpIPAddressName')]",
 			"location": "[parameters('location')]",
 			"properties": {
-				"publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+				"publicIPAllocationMethod": "Dynamic",
 				"dnsSettings": {
 					"domainNameLabel": "[parameters('rdpDNSPrefix')]"
 				}
@@ -481,7 +470,7 @@
 			"name": "[variables('spWebIPAddressName')]",
 			"location": "[parameters('location')]",
 			"properties": {
-				"publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+				"publicIPAllocationMethod": "Dynamic",
 				"dnsSettings": {
 					"domainNameLabel": "[parameters('dnsPrefix')]"
 				}
@@ -493,7 +482,7 @@
 			"name": "[variables('spCAIPAddressName')]",
 			"location": "[parameters('location')]",
 			"properties": {
-				"publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+				"publicIPAllocationMethod": "Dynamic",
 				"dnsSettings": {
 					"domainNameLabel": "[parameters('spCentralAdminDNSPrefix')]"
 				}
@@ -668,7 +657,7 @@
 				],
 				"loadBalancingRules": [
 					{
-						"name": "[variables('SQLAOListener')]",
+						"name": "SQLAlwaysOnEndPointListener",
 						"properties": {
 						"frontendIPConfiguration": {
 							"id": "[variables('sqllbFEConfigID')]"
@@ -833,7 +822,7 @@
 			"apiVersion": "2015-05-01-preview",
 			"copy": {
 				"name": "spWebnicLoop",
-				"count": "[variables('noOfspWebVMs')]"
+				"count": "[variables('noOfspRoleVMs')]"
 			},
 			"dependsOn": [
 				"[variables('virtualNetworkName')]",
@@ -941,7 +930,7 @@
 			"name": "[variables('adPDCVMName')]",
 			"location": "[parameters('location')]",
 			"dependsOn": [
-				"[resourceId('Microsoft.Storage/storageAccounts',concat(parameters('newStorageAccountName'), '0'))]",
+				"[resourceId('Microsoft.Storage/storageAccounts',concat(parameters('newStorageAccountNamePrefix'), '0'))]",
 				"[resourceId('Microsoft.Network/networkInterfaces',variables('adPDCNicName'))]",
 				"[resourceId('Microsoft.Compute/availabilitySets', variables('adAvailabilitySetName'))]",
 				"[resourceId('Microsoft.Network/loadBalancers',variables('rdpLBName'))]"
@@ -960,15 +949,15 @@
 				},
 				"storageProfile": {
 					"imageReference": {
-						"publisher": "[variables('adImagePublisher')]",
-						"offer": "[variables('adImageOffer')]",
-						"sku": "[variables('adImageSKU')]",
+						"publisher": "[variables('windowsImagePublisher')]",
+						"offer": "[variables('windowsImageOffer')]",
+						"sku": "[variables('windowsImageSKU')]",
 						"version": "latest"
 					},
 					"osDisk": {
 						"name": "osdisk",
 						"vhd": {
-							"uri": "[concat('http://',parameters('newStorageAccountName'),'0.blob.core.windows.net/',variables('vmContainerName'),'/',variables('adPDCVMName'),'-osdisk.vhd')]"
+							"uri": "[concat('http://',parameters('newStorageAccountNamePrefix'),'0.blob.core.windows.net/',variables('vmContainerName'),'/',variables('adPDCVMName'),'-osdisk.vhd')]"
 						},
 						"caching": "ReadWrite",
 						"createOption": "FromImage"
@@ -976,12 +965,12 @@
 					"dataDisks": [
 						{
 							"vhd": {
-								"uri":"[concat('http://',parameters('newStorageAccountName'),'0.blob.core.windows.net/',variables('vmContainerName'),'/', variables('adPDCVMName'),'data-1.vhd')]"
+								"uri":"[concat('http://',parameters('newStorageAccountNamePrefix'),'0.blob.core.windows.net/',variables('vmContainerName'),'/', variables('adPDCVMName'),'data-1.vhd')]"
 								},
 							"name":"[concat(variables('adPDCVMName'),'-data-disk1')]",
 							"createOption": "empty",
 							"caching" : "None",
-							"diskSizeGB": "[variables('adDataDiskSize')]",
+							"diskSizeGB": "[variables('windowsDiskSize')]",
 							"lun": 0
 						}
 					]
@@ -1055,7 +1044,7 @@
 			"name": "[variables('adBDCVMName')]",
 			"location": "[parameters('location')]",
 			"dependsOn": [
-				"[resourceId('Microsoft.Storage/storageAccounts',parameters('newStorageAccountName'))]",
+				"[resourceId('Microsoft.Storage/storageAccounts',concat(parameters('newStorageAccountNamePrefix'), '0'))]",
 				"[resourceId('Microsoft.Network/networkInterfaces',variables('adBDCNicName'))]",
 				"[resourceId('Microsoft.Compute/availabilitySets', variables('adAvailabilitySetName'))]",
 				"Microsoft.Resources/deployments/UpdateVNetDNS1"
@@ -1074,15 +1063,15 @@
 				},
 				"storageProfile": {
 					"imageReference": {
-						"publisher": "[variables('adImagePublisher')]",
-						"offer": "[variables('adImageOffer')]",
-						"sku": "[variables('adImageSKU')]",
+						"publisher": "[variables('windowsImagePublisher')]",
+						"offer": "[variables('windowsImageOffer')]",
+						"sku": "[variables('windowsImageSKU')]",
 						"version": "latest"
 					},
 					"osDisk": {
 						"name": "osdisk",
 						"vhd": {
-							"uri": "[concat('http://',parameters('newStorageAccountName'),'0.blob.core.windows.net/',variables('vmContainerName'),'/',variables('adBDCVMName'),'-osdisk.vhd')]"
+							"uri": "[concat('http://',parameters('newStorageAccountNamePrefix'),'0.blob.core.windows.net/',variables('vmContainerName'),'/',variables('adBDCVMName'),'-osdisk.vhd')]"
 						},
 						"caching": "ReadWrite",
 						"createOption": "FromImage"
@@ -1090,12 +1079,12 @@
 					"dataDisks": [
 						{
 							"vhd": {
-								"uri":"[concat('http://',parameters('newStorageAccountName'),'0.blob.core.windows.net/',variables('vmContainerName'),'/', variables('adBDCVMName'),'data-1.vhd')]"
+								"uri":"[concat('http://',parameters('newStorageAccountNamePrefix'),'0.blob.core.windows.net/',variables('vmContainerName'),'/', variables('adBDCVMName'),'data-1.vhd')]"
 								},
 							"name":"[concat(variables('adBDCVMName'),'-data-disk1')]",
 							"createOption": "empty",
 							"caching" : "None",
-							"diskSizeGB": "[variables('adDataDiskSize')]",
+							"diskSizeGB": "[variables('windowsDiskSize')]",
 							"lun": 0
 						}
 					]
@@ -1149,7 +1138,7 @@
 				"count": "[variables('noOfSqlVMs')]"
 			},
 			"dependsOn": [
-				"[resourceId('Microsoft.Storage/storageAccounts',concat(parameters('newStorageAccountName'), '1'))]",
+				"[resourceId('Microsoft.Storage/storageAccounts',concat(parameters('newStorageAccountNamePrefix'), '1'))]",
 				"[resourceId('Microsoft.Network/networkInterfaces',concat(variables('sqlVMName'), copyindex(),'-nic'))]",
 				"[resourceId('Microsoft.Compute/availabilitySets', variables('sqlAvailabilitySetName'))]",
 				"Microsoft.Resources/deployments/UpdateVNetDNS1"
@@ -1176,7 +1165,7 @@
 					"osDisk": {
 						"name": "osdisk",
 						"vhd": {
-							"uri": "[concat('http://',parameters('newStorageAccountName'),'1.blob.core.windows.net/',variables('vmContainerName'),'/',variables('sqlVMName'), copyindex(), '-osdisk.vhd')]"
+							"uri": "[concat('http://',parameters('newStorageAccountNamePrefix'),'1.blob.core.windows.net/',variables('vmContainerName'),'/',variables('sqlVMName'), copyindex(), '-osdisk.vhd')]"
 						},
 						"caching": "ReadWrite",
 						"createOption": "FromImage"
@@ -1184,22 +1173,22 @@
 					"dataDisks": [
 						{
 							"vhd": {
-								"uri":"[concat('http://',parameters('newStorageAccountName'),'1.blob.core.windows.net/',variables('vmContainerName'),'/', variables('sqlVMName'), copyindex(), '-Data-1.vhd')]"
+								"uri":"[concat('http://',parameters('newStorageAccountNamePrefix'),'1.blob.core.windows.net/',variables('vmContainerName'),'/', variables('sqlVMName'), copyindex(), '-Data-1.vhd')]"
 							},
 							"name":"[concat(variables('sqlVMName'), copyindex(),'-data-disk1')]",
 							"caching" : "None",
 							"createOption": "empty",
-							"diskSizeGB": "[variables('sqlDataDiskSize')]",
+							"diskSizeGB": "[variables('sqlDiskSize')]",
 							"lun": 0
 						},
 						{
 							"vhd": {
-								"uri":"[concat('http://',parameters('newStorageAccountName'),'1.blob.core.windows.net/',variables('vmContainerName'),'/', variables('sqlVMName'), copyindex(), '-log.vhd')]"
+								"uri":"[concat('http://',parameters('newStorageAccountNamePrefix'),'1.blob.core.windows.net/',variables('vmContainerName'),'/', variables('sqlVMName'), copyindex(), '-log.vhd')]"
 							},
 							"name":"[concat(variables('sqlVMName'), copyindex(),'-log-disk1')]",
 							"caching" : "None",
 							"createOption": "empty",
-							"diskSizeGB": "[variables('sqlLogDiskSize')]",
+							"diskSizeGB": "[variables('sqlDiskSize')]",
 							"lun": 1
 						}
 					]
@@ -1317,7 +1306,7 @@
 			"name": "[variables('sqlwVMName')]",
 			"location": "[parameters('location')]",
 			"dependsOn": [
-				"[resourceId('Microsoft.Storage/storageAccounts',concat(parameters('newStorageAccountName'), '1'))]",
+				"[resourceId('Microsoft.Storage/storageAccounts',concat(parameters('newStorageAccountNamePrefix'), '1'))]",
 				"[resourceId('Microsoft.Network/networkInterfaces',variables('sqlwNicName'))]",
 				"[resourceId('Microsoft.Compute/availabilitySets', variables('sqlAvailabilitySetName'))]",
 				"Microsoft.Resources/deployments/UpdateVNetDNS1"
@@ -1336,15 +1325,15 @@
 				},
 				"storageProfile": {
 					"imageReference": {
-						"publisher": "[variables('witnessImagePublisher')]",
-						"offer": "[variables('witnessImageOffer')]",
-						"sku": "[variables('witnessImageSKU')]",
+						"publisher": "[variables('windowsImagePublisher')]",
+						"offer": "[variables('windowsImageOffer')]",
+						"sku": "[variables('windowsImageSKU')]",
 						"version": "latest"
 					},
 					"osDisk": {
 						"name": "osdisk",
 						"vhd": {
-							"uri": "[concat('http://',parameters('newStorageAccountName'),'1.blob.core.windows.net/',variables('vmContainerName'),'/',variables('sqlwVMName'),'-osdisk.vhd')]"
+							"uri": "[concat('http://',parameters('newStorageAccountNamePrefix'),'1.blob.core.windows.net/',variables('vmContainerName'),'/',variables('sqlwVMName'),'-osdisk.vhd')]"
 						},
 						"caching": "ReadWrite",
 						"createOption": "FromImage"
@@ -1352,12 +1341,12 @@
 					"dataDisks": [
 						{
 							"vhd": {
-								"uri":"[concat('http://',parameters('newStorageAccountName'),'1.blob.core.windows.net/',variables('vmContainerName'),'/', variables('sqlwVMName'),'-data-1.vhd')]"
+								"uri":"[concat('http://',parameters('newStorageAccountNamePrefix'),'1.blob.core.windows.net/',variables('vmContainerName'),'/', variables('sqlwVMName'),'-data-1.vhd')]"
 								},
 							"name":"[concat(variables('sqlwVMName'),'-data-disk1')]",
 							"caching" : "None",
 							"createOption": "empty",
-							"diskSizeGB": "[variables('witnessDataDiskSize')]",
+							"diskSizeGB": "[variables('windowsDiskSize')]",
 							"lun": 0
 						}
 					]
@@ -1526,10 +1515,10 @@
 			"location": "[parameters('location')]",
 			"copy": {
 				"name": "spAppVMLoop",
-				"count": "[variables('noOfspAppVMs')]"
+				"count": "[variables('noOfspRoleVMs')]"
 			},
 			"dependsOn": [
-				"[resourceId('Microsoft.Storage/storageAccounts',concat(parameters('newStorageAccountName'), '2'))]",
+				"[resourceId('Microsoft.Storage/storageAccounts',concat(parameters('newStorageAccountNamePrefix'), '2'))]",
 				"[resourceId('Microsoft.Network/networkInterfaces',concat(variables('spAppVMName'), copyindex(),'-nic'))]",
 				"[resourceId('Microsoft.Compute/availabilitySets', variables('spAppAvailabilitySetName'))]",
 				"Microsoft.Resources/deployments/UpdateVNetDNS2"
@@ -1556,7 +1545,7 @@
 					"osDisk": {
 						"name": "osdisk",
 						"vhd": {
-							"uri": "[concat('http://',parameters('newStorageAccountName'),'2.blob.core.windows.net/',variables('vmContainerName'),'/',variables('spAppVMName'), copyindex(),'-osdisk.vhd')]"
+							"uri": "[concat('http://',parameters('newStorageAccountNamePrefix'),'2.blob.core.windows.net/',variables('vmContainerName'),'/',variables('spAppVMName'), copyindex(),'-osdisk.vhd')]"
 						},
 						"caching": "ReadWrite",
 						"createOption": "FromImage"
@@ -1564,12 +1553,12 @@
 					"dataDisks": [
 						{
 							"vhd": {
-								"uri":"[concat('http://',parameters('newStorageAccountName'),'2.blob.core.windows.net/',variables('vmContainerName'),'/', variables('spAppVMName'), copyindex(), '-Data-1.vhd')]"
+								"uri":"[concat('http://',parameters('newStorageAccountNamePrefix'),'2.blob.core.windows.net/',variables('vmContainerName'),'/', variables('spAppVMName'), copyindex(), '-Data-1.vhd')]"
 							},
 							"name":"[concat(variables('spAppVMName'), copyindex(),'-data-disk1')]",
 							"caching" : "None",
 							"createOption": "empty",
-							"diskSizeGB": "[variables('spDataDiskSize')]",
+							"diskSizeGB": "[variables('spDiskSize')]",
 							"lun": 0
 						}
 					]
@@ -1708,10 +1697,10 @@
 			"location": "[parameters('location')]",
 			"copy": {
 				"name": "spWebVMLoop",
-				"count": "[variables('noOfspWebVMs')]"
+				"count": "[variables('noOfspRoleVMs')]"
 			},
 			"dependsOn": [
-				"[resourceId('Microsoft.Storage/storageAccounts',concat(parameters('newStorageAccountName'), '2'))]",
+				"[resourceId('Microsoft.Storage/storageAccounts',concat(parameters('newStorageAccountNamePrefix'), '2'))]",
 				"[resourceId('Microsoft.Network/networkInterfaces',concat(variables('spWebVMName'), copyindex(),'-nic'))]",
 				"[resourceId('Microsoft.Compute/availabilitySets', variables('spWebAvailabilitySetName'))]",
 				"Microsoft.Resources/deployments/UpdateVNetDNS2"
@@ -1738,7 +1727,7 @@
 					"osDisk": {
 						"name": "osdisk",
 						"vhd": {
-							"uri": "[concat('http://',parameters('newStorageAccountName'),'2.blob.core.windows.net/',variables('vmContainerName'),'/',variables('spWebVMName'), copyindex(),'-osdisk.vhd')]"
+							"uri": "[concat('http://',parameters('newStorageAccountNamePrefix'),'2.blob.core.windows.net/',variables('vmContainerName'),'/',variables('spWebVMName'), copyindex(),'-osdisk.vhd')]"
 						},
 						"caching": "ReadWrite",
 						"createOption": "FromImage"
@@ -1746,12 +1735,12 @@
 					"dataDisks": [
 						{
 							"vhd": {
-								"uri":"[concat('http://',parameters('newStorageAccountName'),'2.blob.core.windows.net/',variables('vmContainerName'),'/', variables('spWebVMName'), copyindex(), '-Data-1.vhd')]"
+								"uri":"[concat('http://',parameters('newStorageAccountNamePrefix'),'2.blob.core.windows.net/',variables('vmContainerName'),'/', variables('spWebVMName'), copyindex(), '-Data-1.vhd')]"
 							},
 							"name":"[concat(variables('spWebVMName'), copyindex(),'-data-disk1')]",
 							"caching" : "None",
 							"createOption": "empty",
-							"diskSizeGB": "[variables('spDataDiskSize')]",
+							"diskSizeGB": "[variables('spDiskSize')]",
 							"lun": 0
 						}
 					]
