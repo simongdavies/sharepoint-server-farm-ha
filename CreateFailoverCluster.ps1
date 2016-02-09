@@ -16,7 +16,7 @@ configuration CreateFailoverCluster
         [System.Management.Automation.PSCredential]$SQLServiceCreds,
 
         [Parameter(Mandatory)]
-        [System.Management.Automation.PSCredential]SharePointSetupUserAccountcreds,
+        [System.Management.Automation.PSCredential]$SharePointSetupUserAccountcreds,
 
         [Parameter(Mandatory)]
         [String]$ClusterName,
@@ -62,7 +62,7 @@ configuration CreateFailoverCluster
 
     )
 
-    Import-DscResource -ModuleName xComputerManagement, xFailOverCluster,CDisk,xActiveDirectory,XDisk,xSqlPs,xNetworking, xSql, xSQLServer
+    Import-DscResource -ModuleName xComputerManagement, xFailOverCluster,CDisk,xActiveDirectory,xDisk,xSqlPs,xNetworking, xSql, xSQLServer
     [System.Management.Automation.PSCredential]$DomainCreds = New-Object System.Management.Automation.PSCredential ("${DomainNetbiosName}\$($Admincreds.UserName)", $Admincreds.Password)
     [System.Management.Automation.PSCredential]$DomainFQDNCreds = New-Object System.Management.Automation.PSCredential ("${DomainName}\$($Admincreds.UserName)", $Admincreds.Password)
     [System.Management.Automation.PSCredential]$SQLCreds = New-Object System.Management.Automation.PSCredential ("${DomainNetbiosName}\$($SQLServiceCreds.UserName)", $SQLServiceCreds.Password)
@@ -251,7 +251,7 @@ configuration CreateFailoverCluster
             MaxDegreeOfParallelism = 1
             FilePath = "F:\DATA"
             LogPath = "G:\LOG"
-            DomainAdministratorCredential = $DomainCreds
+            DomainAdministratorCredential = $DomainFQDNCreds
             DependsOn = "[xSqlLogin]AddSqlServerServiceAccountToSysadminServerRole"
         }
 
